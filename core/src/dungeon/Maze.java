@@ -65,8 +65,7 @@ public class Maze implements Disposable {
 
 		layers.add(tml);
 		
-		map.getLayers().get(0).setName("décor");
-		map.getLayers().get("décor").setOpacity(1f);;
+		map.getLayers().get(0).setName("walls");
 		
 		renderer = new OrthogonalTiledMapRenderer(map, GameScreen.batch);
 		
@@ -75,7 +74,7 @@ public class Maze implements Disposable {
 	public void render() {
 
 		renderer.setView(GameScreen.game_cam);
-		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("décor"));
+		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("walls"));
 		player.render();
 		
 	}	
@@ -88,27 +87,24 @@ public class Maze implements Disposable {
 	
 	private char[][] makeBluePrint() {
 		
+		int width = Constants.MAP_WIDTH / 2, height = Constants.MAP_HEIGHT / 2, i, j, nb_broken_walls = 0;
 		char blueprint[][] = new char[Constants.MAP_WIDTH][Constants.MAP_HEIGHT];
 		boolean[][] horizontal_walls, vertical_walls;
-		int width = Constants.MAP_WIDTH / 2, height = Constants.MAP_HEIGHT / 2, i, j, nb_broken_walls = 0;
 		
 		Set[][] cases = new Set[width][height];
 		horizontal_walls = new boolean[width][height - 1];
 		vertical_walls = new boolean[width - 1][height];
 		
 		for (i = 0 ; i < width ; ++i)
-			for (j = 0 ; j < height - 1 ; ++j)
-				horizontal_walls[i][j] = true;
-
-		for (i = 0 ; i < width - 1 ; ++i)
-			for (j = 0 ; j < height ; ++j)
-				vertical_walls[i][j] = true;
-		
-		for (i = 0 ; i < width ; ++i)
-			for (j = 0 ; j < height ; ++j)
+			for (j = 0 ; j < height ; ++j) {
+				
 				cases[i][j] = new Set();
+				if (j < height - 1) horizontal_walls[i][j] = true;
+				if (i < width - 1) vertical_walls[i][j] = true;
+				
+			}
 	
-		while (nb_broken_walls != width * height - 1) {
+		do {
 			
 			if (Math.random() < 0.5f ) {
 				
@@ -130,37 +126,25 @@ public class Maze implements Disposable {
 				i = (int)(Math.random() * width - 1);
 				j = (int)(Math.random() * height);		
 			
-			if (vertical_walls[i][j])
-				if (cases[i][j].find() != cases[i + 1][j].find()) {
+				if (vertical_walls[i][j])
+					if (cases[i][j].find() != cases[i + 1][j].find()) {
 					
-					cases[i][j].union(cases[i + 1][j]);
-					vertical_walls[i][j] = false;
-					++nb_broken_walls;
+						cases[i][j].union(cases[i + 1][j]);
+						vertical_walls[i][j] = false;
+						++nb_broken_walls;
 					
 				}
 			
 			}
 			
 			
-		}
+		} while (nb_broken_walls < width * height - 1);
 		
-		for (i = 0 ; i < Constants.MAP_WIDTH ; ++i) {
-			
-			for (j = 0 ; j < Constants.MAP_HEIGHT ; ++j) {
-				
-				if (i == 0 || j == 0 || i == Constants.MAP_WIDTH - 1 || j == Constants.MAP_HEIGHT - 1) blueprint[i][j] = 'w';
-				else {
-					
-					if (i % 2 == 0 && vertical_walls[(i - 2) / 2][(j - 1) / 2]) blueprint[i][j] = 'w';
-					else if (j % 2 == 0 && horizontal_walls[(i - 1) / 2][(j - 2) / 2]) blueprint[i][j] = 'w';
-					
-				}
-				
-			}
-			
-
-			
-		}
+		for (i = 0 ; i < Constants.MAP_WIDTH ; ++i)
+			for (j = 0 ; j < Constants.MAP_HEIGHT ; ++j)
+				if (	i == 0 || j == 0 || i == Constants.MAP_WIDTH - 1 || j == Constants.MAP_HEIGHT - 1 ||
+						(i % 2 == 0 && vertical_walls[(i - 2) / 2][(j - 1) / 2]) ||
+						(j % 2 == 0 && horizontal_walls[(i - 1) / 2][(j - 2) / 2])	) blueprint[i][j] = 'w';
 		
 		return blueprint;
 		

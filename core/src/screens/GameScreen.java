@@ -75,8 +75,23 @@ public class GameScreen implements Screen {
 			
 			Vector3 camPosition = game_cam.position;
 			
-			camPosition.x += (Maze.player.getPosition().x * Constants.PPM - game_cam.position.x) * Constants.CAMERA_LERP;
-			camPosition.y += (Maze.player.getPosition().y * Constants.PPM - game_cam.position.y) * Constants.CAMERA_LERP;
+			float player_position = Maze.player.getPosition().x * Constants.PPM;
+			float half_cam = Constants.VIRTUAL_WIDTH / 2;
+			
+			if (player_position - half_cam <= 0) camPosition.x += (half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
+				else	if (player_position + half_cam  >= Constants.MAP_WIDTH * Constants.TILE_WIDTH)
+							camPosition.x += (Constants.MAP_WIDTH * Constants.TILE_WIDTH - half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
+	
+						else camPosition.x += (player_position - game_cam.position.x) * Constants.CAMERA_LERP;
+			
+			player_position = Maze.player.getPosition().y * Constants.PPM;
+			half_cam = Constants.VIRTUAL_HEIGHT / 2;
+			
+			if (player_position - half_cam <= 0) camPosition.y += (half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
+				else	if (player_position + half_cam  >= Constants.MAP_HEIGHT * Constants.TILE_HEIGHT)
+							camPosition.y += (Constants.MAP_HEIGHT * Constants.TILE_HEIGHT - half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
+			
+						else camPosition.y += (player_position - game_cam.position.y) * Constants.CAMERA_LERP;
 			
 			game_cam.position.set(camPosition);
 			game_cam.update();
@@ -96,31 +111,24 @@ public class GameScreen implements Screen {
 		
 	}
 
-	@Override
 	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-		
+    	
 	}
 
-	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	public void dispose() {
+		
 		batch.dispose();
 		dungeon.dispose();
 		b2dr.dispose();

@@ -5,7 +5,7 @@ public final class Constants {
 	private Constants() {} //Static class
 
 	/*Application*/
-	public static final String GAME_TITLE = "Mon 1er jeu";
+	public static final String GAME_TITLE = "Projet L3";
     public static final int APP_WIDTH = 1920;
     public static final int APP_HEIGHT = 1080;
     
@@ -16,7 +16,7 @@ public final class Constants {
     /*Camera*/
     public static final int VIRTUAL_WIDTH = APP_WIDTH / 4;
     public static final int VIRTUAL_HEIGHT = APP_HEIGHT / 4;
-    public static final float CAMERA_LERP = 0.1f;
+    public static final float CAMERA_LERP = 0.05f;
     
     /*Map*/
     public static final int TILE_WIDTH = 32;

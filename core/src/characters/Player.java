@@ -28,14 +28,15 @@ public class Player implements IMoveable {
 	public Player() {
 		
 		/*Movements*/
-		speed = 3f;
+		speed = 2.5f;
 		isMoving = movingUp = movingDown = movingLeft = movingRight = false;
-		current_frame = Assets.player_walk_down_animation.getKeyFrame(0);
+		current_frame = Assets.player_walk_down_animation.getKeyFrame(0); //Default frame if the player is motionless
 		
-		b = BodyCreator.createDynamicCircleBody(b, new Vector2(Constants.MAP_WIDTH / 2, Constants.MAP_HEIGHT / 2), current_frame.getRegionWidth() / (4 * Constants.PPM));
+		b = BodyCreator.createDynamicCircleBody(	b, new Vector2(Constants.MAP_WIDTH / 2, Constants.MAP_HEIGHT / 2),
+													current_frame.getRegionWidth() / (4 * Constants.PPM)	);
 
 		/*Lights*/
-		aura = new Aura(b, Color.WHITE, 3f);
+		aura = new Aura(b, Color.GOLDENROD, 1f);
 		crystal = new WhiteCrystal(b);	
 		
 	}
@@ -43,21 +44,20 @@ public class Player implements IMoveable {
 	public void update(float delta) {
 		
 		state_time += delta;
-		
-		/*Lights*/
-		crystal.setPosition(new Vector2(b.getPosition().x, b.getPosition().y));
-	
-		if (isMoving) move(delta); //Movements
+		crystal.setPosition(getPosition());	// Light updating
+		if (isMoving) move(delta); // Position updating
 		
 	}
 	
 	public void render() {
 		
-		GameScreen.batch.draw(current_frame, getPosition().x * Constants.PPM - current_frame.getRegionWidth() / 2, getPosition().y * Constants.PPM - current_frame.getRegionHeight() / 2);
+		GameScreen.batch.draw(	current_frame,
+								getPosition().x * Constants.PPM - current_frame.getRegionWidth() / 2,
+								getPosition().y * Constants.PPM - current_frame.getRegionHeight() / 2	);
 		
 	}
 
-	protected void die() {
+	private void die() {
 		
 		aura.dispose();
 		crystal.dispose();
@@ -101,17 +101,12 @@ public class Player implements IMoveable {
 				
 			isMoving = false;
 			b.setLinearVelocity(0, 0);
-			current_frame = Assets.player_walk_down_animation.getKeyFrame(0);
-			
+			current_frame = Assets.player_walk_down_animation.getKeyFrame(0); //Default frame if the player is motionless
 			
 		}
 		
 	}
 
-	public Vector2 getPosition() {
-		
-		return new Vector2(b.getPosition().x, b.getPosition().y);
-		
-	}
+	public Vector2 getPosition() { return b.getPosition(); }
 
 }

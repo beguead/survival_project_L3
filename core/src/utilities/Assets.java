@@ -10,9 +10,7 @@ public final class Assets {
 	
 	public static TextureRegion [][] split;
 	
-	private Assets() {
-		
-	}
+	private Assets() {}
 	
 	public static StaticTiledMapTile wall_tile;
 	public static StaticTiledMapTile floor_tile;

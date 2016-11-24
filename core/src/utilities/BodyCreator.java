@@ -40,13 +40,13 @@ public final class BodyCreator {
 		
 	}
 	
-	public static Body createKinematicBoxBody(Body b, Vector2 initial_position, float radius) {
+	public static Body createKinematicCircleBody(Body b, Vector2 initial_position, float radius) {
 		
 		return createCircleBody(b, body_type.Kinematic, initial_position, radius);
 		
 	}
 	
-	public static Body createStaticBoxBody(Body b, Vector2 initial_position, float radius) {
+	public static Body createStaticCircleBody(Body b, Vector2 initial_position, float radius) {
 		
 		return createCircleBody(b, body_type.Static, initial_position, radius);
 		
@@ -119,8 +119,11 @@ public final class BodyCreator {
 	
 	private static PolygonShape createBoxShape(Body b, float width, float height) {
 		
+		float w = width / (2 * Constants.PPM);
+		float h = height / (2 * Constants.PPM);
+		
 		PolygonShape shape = new PolygonShape();
-		shape.setAsBox(width / (2 * Constants.PPM), height / (2 * Constants.PPM), b.getPosition(), 0f);
+		shape.setAsBox(w, h, new Vector2(b.getPosition().x + w, b.getPosition().y + h), 0f);
 		
 		return shape;
 		
