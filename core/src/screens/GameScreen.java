@@ -24,6 +24,7 @@ public class GameScreen implements Screen {
 	public static RayHandler ray_handler;
 	public static SpriteBatch batch;
 	public static World world;
+	public static float state_time;
 	
 	private Box2DDebugRenderer b2dr;
 	private Matrix4 debugmatrix;
@@ -63,11 +64,11 @@ public class GameScreen implements Screen {
 	@SuppressWarnings("deprecation")
 	public void render(float delta) {
 		
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		state_time += delta;
 		
 		debugmatrix = batch.getProjectionMatrix().cpy().scale(Constants.PPM, Constants.PPM, 0);
 		
-		Maze.player.update(delta);
+		dungeon.update(delta);
 		
 		if (!paused) {
 			
@@ -102,7 +103,7 @@ public class GameScreen implements Screen {
 		batch.setProjectionMatrix(game_cam.combined);
 		
 		batch.begin();
-		dungeon.render();
+		dungeon.render(delta);
 		batch.end();
 		
 		ray_handler.updateAndRender();

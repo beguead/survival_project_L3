@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import interfaces.IMoveable;
 import items.Crystal;
@@ -17,7 +18,7 @@ import utilities.Constants;
 public class Player implements IMoveable {
 	
 	public boolean isMoving, movingUp, movingDown, movingLeft, movingRight;
-	private float speed, state_time;
+	private float speed;
 	
 	private Body b;
 	private TextureRegion current_frame;
@@ -32,18 +33,18 @@ public class Player implements IMoveable {
 		isMoving = movingUp = movingDown = movingLeft = movingRight = false;
 		current_frame = Assets.player_walk_down_animation.getKeyFrame(0); //Default frame if the player is motionless
 		
-		b = BodyCreator.createDynamicCircleBody(	b, new Vector2(Constants.MAP_WIDTH / 2, Constants.MAP_HEIGHT / 2),
-													current_frame.getRegionWidth() / (4 * Constants.PPM)	);
+		b = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody,
+											new Vector2(Constants.MAP_WIDTH / 2, Constants.MAP_HEIGHT / 2),
+											current_frame.getRegionWidth() / (4 * Constants.PPM)	);
 
 		/*Lights*/
 		aura = new Aura(b, Color.GOLDENROD, 1f);
 		crystal = new WhiteCrystal(b);	
-		
+
 	}
 
 	public void update(float delta) {
 		
-		state_time += delta;
 		crystal.setPosition(getPosition());	// Light updating
 		if (isMoving) move(delta); // Position updating
 		
@@ -53,7 +54,7 @@ public class Player implements IMoveable {
 		
 		GameScreen.batch.draw(	current_frame,
 								getPosition().x * Constants.PPM - current_frame.getRegionWidth() / 2,
-								getPosition().y * Constants.PPM - current_frame.getRegionHeight() / 2	);
+								getPosition().y * Constants.PPM - current_frame.getRegionHeight() / 3);
 		
 	}
 
@@ -69,28 +70,28 @@ public class Player implements IMoveable {
 		if (movingUp) {
 			
 			b.setLinearVelocity(b.getLinearVelocity().x, speed);
-			current_frame = Assets.player_walk_up_animation.getKeyFrame(state_time);
+			current_frame = Assets.player_walk_up_animation.getKeyFrame(GameScreen.state_time);
 			
 		}
 		
 		if (movingDown) {
 			
 			b.setLinearVelocity(b.getLinearVelocity().x, -speed);
-			current_frame = Assets.player_walk_down_animation.getKeyFrame(state_time);
+			current_frame = Assets.player_walk_down_animation.getKeyFrame(GameScreen.state_time);
 			
 		}
 		
 		if (movingLeft){
 			
 			b.setLinearVelocity(-speed, b.getLinearVelocity().y);
-			current_frame = Assets.player_walk_left_animation.getKeyFrame(state_time);		
+			current_frame = Assets.player_walk_left_animation.getKeyFrame(GameScreen.state_time);		
 			
 		}
 		
 		if (movingRight) {
 			
 			b.setLinearVelocity(speed, b.getLinearVelocity().y);
-			current_frame = Assets.player_walk_right_animation.getKeyFrame(state_time);
+			current_frame = Assets.player_walk_right_animation.getKeyFrame(GameScreen.state_time);
 			
 		}
 			

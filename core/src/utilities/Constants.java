@@ -6,8 +6,8 @@ public final class Constants {
 
 	/*Application*/
 	public static final String GAME_TITLE = "Projet L3";
-    public static final int APP_WIDTH = 1920;
-    public static final int APP_HEIGHT = 1080;
+    public static final int APP_WIDTH = 1200;
+    public static final int APP_HEIGHT = 800;
     
     /*Conversion*/
     public static final float PPM = 32f;
@@ -21,8 +21,8 @@ public final class Constants {
     /*Map*/
     public static final int TILE_WIDTH = 32;
     public static final int TILE_HEIGHT = 32;
-    public static final int MAP_WIDTH = 31;
-    public static final int MAP_HEIGHT = 31;
+    public static final int MAP_WIDTH = 21;
+    public static final int MAP_HEIGHT = 21;
     
     
     
