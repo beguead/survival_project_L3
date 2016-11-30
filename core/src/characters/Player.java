@@ -15,9 +15,9 @@ import utilities.Assets;
 import utilities.BodyCreator;
 import utilities.Constants;
 
-public class Player implements IMoveable {
+public class Player {
 	
-	public boolean isMoving, movingUp, movingDown, movingLeft, movingRight;
+	public boolean is_moving;
 	private float speed;
 	
 	private Body b;
@@ -29,8 +29,8 @@ public class Player implements IMoveable {
 	public Player() {
 		
 		/*Movements*/
-		speed = 2.5f;
-		isMoving = movingUp = movingDown = movingLeft = movingRight = false;
+		speed = 2f;
+		is_moving = false;
 		current_frame = Assets.player_walk_down_animation.getKeyFrame(0); //Default frame if the player is motionless
 		
 		b = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody,
@@ -38,7 +38,7 @@ public class Player implements IMoveable {
 											current_frame.getRegionWidth() / (4 * Constants.PPM)	);
 
 		/*Lights*/
-		aura = new Aura(b, Color.GOLDENROD, 1f);
+		aura = new Aura(b, Color.GOLDENROD, 0.5f);
 		crystal = new WhiteCrystal(b);	
 
 	}
@@ -46,7 +46,6 @@ public class Player implements IMoveable {
 	public void update(float delta) {
 		
 		crystal.setPosition(getPosition());	// Light updating
-		if (isMoving) move(delta); // Position updating
 		
 	}
 	
@@ -64,49 +63,38 @@ public class Player implements IMoveable {
 		crystal.dispose();
 		
 	}
-
-	public void move(float delta) {
-			
-		if (movingUp) {
-			
-			b.setLinearVelocity(b.getLinearVelocity().x, speed);
-			current_frame = Assets.player_walk_up_animation.getKeyFrame(GameScreen.state_time);
-			
-		}
+	
+	public void setDirection(float angle) {
 		
-		if (movingDown) {
-			
-			b.setLinearVelocity(b.getLinearVelocity().x, -speed);
-			current_frame = Assets.player_walk_down_animation.getKeyFrame(GameScreen.state_time);
-			
-		}
+		if (Math.abs(angle) < 22.5f) current_frame = Assets.player_walk_right_animation.getKeyFrame(GameScreen.state_time);
+		else {
 		
-		if (movingLeft){
-			
-			b.setLinearVelocity(-speed, b.getLinearVelocity().y);
-			current_frame = Assets.player_walk_left_animation.getKeyFrame(GameScreen.state_time);		
-			
-		}
-		
-		if (movingRight) {
-			
-			b.setLinearVelocity(speed, b.getLinearVelocity().y);
-			current_frame = Assets.player_walk_right_animation.getKeyFrame(GameScreen.state_time);
-			
-		}
-			
-		if (!movingUp && !movingDown) b.setLinearVelocity(b.getLinearVelocity().x, 0);
-		if (!movingLeft && !movingRight) b.setLinearVelocity(0, b.getLinearVelocity().y);
-			
-		if (!movingUp && !movingDown && !movingLeft && !movingRight) {
+			if (Math.abs(angle) < 67.5f) {
 				
-			isMoving = false;
-			b.setLinearVelocity(0, 0);
-			current_frame = Assets.player_walk_down_animation.getKeyFrame(0); //Default frame if the player is motionless
-			
-		}
-		
+				if (angle > 0f) current_frame = Assets.player_walk_right_up_animation.getKeyFrame(GameScreen.state_time);
+				else current_frame = Assets.player_walk_right_down_animation.getKeyFrame(GameScreen.state_time);
+				
+			} else {
+				
+				if (Math.abs(angle) < 112.5f) {
+					
+					if (angle > 0f) current_frame = Assets.player_walk_up_animation.getKeyFrame(GameScreen.state_time);
+					else current_frame = Assets.player_walk_down_animation.getKeyFrame(GameScreen.state_time);
+					
+				} else {
+					
+					if (Math.abs(angle) < 157.5f) {
+						
+						if (angle > 0f) current_frame = Assets.player_walk_left_up_animation.getKeyFrame(GameScreen.state_time);
+						else current_frame = Assets.player_walk_left_down_animation.getKeyFrame(GameScreen.state_time);
+						
+					} else current_frame = Assets.player_walk_left_animation.getKeyFrame(GameScreen.state_time);			
+				}
+			}	
+		}	
 	}
+
+	public void move(float x, float y) { b.setLinearVelocity(x * speed, y * speed); }
 
 	public Vector2 getPosition() { return b.getPosition(); }
 

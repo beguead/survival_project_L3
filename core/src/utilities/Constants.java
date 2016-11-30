@@ -14,8 +14,6 @@ public final class Constants {
     public static final float TO_DEGREE = (float)(180f / Math.PI);
 
     /*Camera*/
-    public static final int VIRTUAL_WIDTH = APP_WIDTH / 4;
-    public static final int VIRTUAL_HEIGHT = APP_HEIGHT / 4;
     public static final float CAMERA_LERP = 0.05f;
     
     /*Map*/
@@ -23,6 +21,8 @@ public final class Constants {
     public static final int TILE_HEIGHT = 32;
     public static final int MAP_WIDTH = 21;
     public static final int MAP_HEIGHT = 21;
+    
+    public static final float FRAME_DURATION = 0.2f;
     
     
     

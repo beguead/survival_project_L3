@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Vector3;
 
 import dungeon.Maze;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 
 import screens.GameScreen;
@@ -13,34 +14,42 @@ public class GameInputManager implements InputProcessor {
 	
 	public boolean keyDown(int keycode) {
 		
-		/*Management of player movements*/
+		switch (keycode) {
 		
-		if (keycode == Keys.Z || keycode == Keys.UP) {
+			case Keys.MINUS: {
+				
+				if (Assets.virtual_width < Constants.APP_WIDTH && Assets.virtual_height < Constants.APP_HEIGHT) {
+				
+					Assets.virtual_width += 100;
+					Assets.virtual_height += 100;
+					
+			    	GameScreen.game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
+			    	GameScreen.game_cam.update();
+					
+				}
+				
+				break;
+				
+			}
 			
-			Maze.player.movingUp = true;
-			Maze.player.isMoving = true;
+			case Keys.PLUS : {
+				
+				if (Assets.virtual_width > Constants.APP_WIDTH / 4 && Assets.virtual_height > Constants.APP_HEIGHT / 4) {
+				
+					Assets.virtual_width -= 100;
+					Assets.virtual_height -= 100;
+					
+			    	GameScreen.game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
+			    	GameScreen.game_cam.update();
+				
+				}
+				
+			}
 			
-		}
+			default : {}
+			
+			break;
 		
-		if (keycode == Keys.S || keycode == Keys.DOWN) {
-			
-			Maze.player.movingDown = true;
-			Maze.player.isMoving = true;
-			
-		}
-		
-		if (keycode == Keys.Q || keycode == Keys.LEFT) {
-			
-			Maze.player.movingLeft = true;
-			Maze.player.isMoving = true;
-			
-		}
-		
-		if (keycode == Keys.D || keycode == Keys.RIGHT) {
-			
-			Maze.player.movingRight = true;
-			Maze.player.isMoving = true;
-			
 		}
 
 		return false;
@@ -48,60 +57,73 @@ public class GameInputManager implements InputProcessor {
 
 	public boolean keyUp(int keycode) {
 		
-		if (keycode == Keys.Z || keycode == Keys.UP) Maze.player.movingUp = false;
-		if (keycode == Keys.S || keycode == Keys.DOWN) Maze.player.movingDown = false;
-		if (keycode == Keys.Q || keycode == Keys.LEFT) Maze.player.movingLeft = false;
-		if (keycode == Keys.D || keycode == Keys.RIGHT) Maze.player.movingRight = false;
+		return false;
+	}
+
+	public boolean keyTyped(char character) {
+		return false;
+	}
+
+	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+
+		if (button == Input.Buttons.LEFT) Maze.player.is_moving = true;
 		
 		return false;
 	}
 
-	@Override
-	public boolean keyTyped(char character) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
+
+		if (button == Input.Buttons.LEFT) {
+			
+			Maze.player.is_moving = false;
+			Maze.player.move(0f, 0f);
+			
+		}
+		
 		return false;
 	}
 
-	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		// TODO Auto-generated method stub
+		
+		double angle = getMouseAngle(screenX, screenY);
+		
+		if (Maze.player.is_moving) Maze.player.move((float)(Math.cos(angle)), (float)(Math.sin(angle)));
+		
+		angle *= Constants.TO_DEGREE;
+		
+		Maze.player.setDirection((float)angle);
+		Maze.player.crystal.setDirection((float)angle);
+		
 		return false;
 	}
 
 
 	public boolean mouseMoved(int screenX, int screenY) {
 		
-		double adj, angle, opp;
-		
-		Vector3 input = new Vector3(screenX, screenY, 0);
-		GameScreen.game_cam.unproject(input);
-		
-		opp = input.y - Maze.player.getPosition().y * Constants.PPM;
-		adj = input.x - Maze.player.getPosition().x * Constants.PPM;	
-		angle = Constants.TO_DEGREE * (Math.atan2(opp , adj));
-		
-		Maze.player.crystal.setDirection((float)angle);
+		Maze.player.crystal.setDirection((float)(Constants.TO_DEGREE * getMouseAngle(screenX, screenY)));
 			
 		return false;
 		
 	}
 
-	@Override
 	public boolean scrolled(int amount) {
-		// TODO Auto-generated method stub
+		
 		return false;
+		
+	}
+	
+	private double getMouseAngle(int screenX, int screenY) {
+		
+		Vector3 input = new Vector3(screenX, screenY, 0);
+		GameScreen.game_cam.unproject(input);
+	
+		double adj, angle, opp;
+		opp = input.y - Maze.player.getPosition().y * Constants.PPM;
+		adj = input.x - Maze.player.getPosition().x * Constants.PPM;	
+		angle = Math.atan2(opp , adj);
+		
+		return angle;
+		
 	}
 
 }

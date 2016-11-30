@@ -38,7 +38,7 @@ public class GameScreen implements Screen {
     	Assets.load();
     	
     	game_cam = new OrthographicCamera();
-    	game_cam.setToOrtho(false, Constants.VIRTUAL_WIDTH, Constants.VIRTUAL_HEIGHT);
+    	game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
 		game_cam.update();
     	
     	ray_handler = new RayHandler(world);
@@ -77,7 +77,7 @@ public class GameScreen implements Screen {
 			Vector3 camPosition = game_cam.position;
 			
 			float player_position = Maze.player.getPosition().x * Constants.PPM;
-			float half_cam = Constants.VIRTUAL_WIDTH / 2;
+			float half_cam = Assets.virtual_width / 2;
 			
 			if (player_position - half_cam <= 0) camPosition.x += (half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
 				else	if (player_position + half_cam  >= Constants.MAP_WIDTH * Constants.TILE_WIDTH)
@@ -86,7 +86,7 @@ public class GameScreen implements Screen {
 						else camPosition.x += (player_position - game_cam.position.x) * Constants.CAMERA_LERP;
 			
 			player_position = Maze.player.getPosition().y * Constants.PPM;
-			half_cam = Constants.VIRTUAL_HEIGHT / 2;
+			half_cam = Assets.virtual_height / 2;
 			
 			if (player_position - half_cam <= 0) camPosition.y += (half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
 				else	if (player_position + half_cam  >= Constants.MAP_HEIGHT * Constants.TILE_HEIGHT)
