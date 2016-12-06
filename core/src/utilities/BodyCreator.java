@@ -14,7 +14,7 @@ public final class BodyCreator {
 	
 	private BodyCreator() {}
 	
-	public static Body createBoxBody(BodyDef.BodyType type, Vector2 initial_position, float width, float height) {
+	public static Body createBoxBody(BodyDef.BodyType type, Vector2 initial_position, float width, float height, boolean sensor, short cBits, short mBits, Object o) {
 		
 		BodyDef bd = new BodyDef();
 		bd.type = type;
@@ -23,7 +23,10 @@ public final class BodyCreator {
 			
 		PolygonShape shape = createBoxShape(body, width, height);
 		FixtureDef fdef = createFixtureDef(shape);
-		body.createFixture(fdef);
+		fdef.isSensor = sensor;
+		fdef.filter.categoryBits = cBits; //Is a
+		fdef.filter.maskBits = mBits; //Collides with
+		body.createFixture(fdef).setUserData(o);
 		shape.dispose();
 	
 		body.setTransform(initial_position.x, initial_position.y, 0f);
@@ -32,7 +35,7 @@ public final class BodyCreator {
 		
 	}
 	
-	public static Body createCircleBody(BodyDef.BodyType type, Vector2 initial_position, float radius) {
+	public static Body createCircleBody(BodyDef.BodyType type, Vector2 initial_position, float radius, boolean sensor, short cBits, short mBits, Object o) {
 		
 		BodyDef bdef = new BodyDef();
 		bdef.type = type;
@@ -41,7 +44,10 @@ public final class BodyCreator {
 			
 		CircleShape shape = createCircleShape(body, radius);
 		FixtureDef fdef = createFixtureDef(shape);
-		body.createFixture(fdef);
+		fdef.isSensor = sensor;
+		fdef.filter.categoryBits = cBits; //Is a
+		fdef.filter.maskBits = mBits; //Collides with
+		body.createFixture(fdef).setUserData(o);
 		shape.dispose();
 			
 		body.setTransform(initial_position.x, initial_position.y, 0f);

@@ -2,49 +2,44 @@ package characters;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import box2dLight.ConeLight;
+import lights.Aura;
 import screens.GameScreen;
+import utilities.Assets;
+import utilities.BodyCreator;
+import utilities.Constants;
 
 public class Jester extends Enemy {
 	
-	ConeLight lights[];
 	
-	public Jester() {
+	public Jester(int x, int y) {
 		
-		final Color c[] = {Color.PURPLE, Color.BLUE, Color.CYAN, Color.GREEN, Color.YELLOW, Color.ORANGE, Color.RED};
-		lights = new ConeLight[7];
+		/*Movements*/
+		speed = 1.9f;
+
+		current_frame = Assets.player_walk_down_animation.getKeyFrame(0); //Default frame if the player is motionless
 		
-		for (int i = 0 ; i < 7 ; ++i) {
-			
-			lights[i] = new ConeLight(GameScreen.ray_handler, 100, c[i], 2f, body.getPosition().x, body.getPosition().y, i * 50f, 40f);
-			lights[i].setSoftnessLength(0.7f);
-			
-		}
+		b = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody,
+											new Vector2(x + 0.5f, y + 0.5f),
+											current_frame.getRegionWidth() / (3 * Constants.PPM), false, (short)0, (short)0, this);
 		
-	}
-	
-	public void update(float delta) {
-		super.update(delta);
-		
-		for (int i = 0 ; i < 7 ; ++i) {
-			
-			lights[i].setPosition(body.getPosition().x, body.getPosition().y);
-			lights[i].setDirection(i * 50f + state_time * 25f);
-			
-		}
+		/*Lights*/
+		aura = new Aura(b, Color.WHITE, 0.5f);
+
 		
 	}
 
-	@Override
+
 	public void move(float delta) {
-		// TODO Auto-generated method stub
+
 		
 	}
 
-	@Override
+
 	public Vector2 getPosition() {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 

@@ -1,35 +1,33 @@
 package items;
 
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-
-import box2dLight.ConeLight;
 
 public abstract class Crystal {
 	
-	protected ConeLight cone_light;
-	protected Texture texture;
+	//protected final Texture texture;
 	
 	public Crystal() {};
-	public Crystal(Body b) {};
 	
-	public void dispose() {
-		
-		cone_light.dispose();
-		
-	}
-
-	public void setPosition(Vector2 position) {
-		
-		cone_light.setPosition(position);
+	public Color getColor() {
+	
+		if (this instanceof WhiteCrystal) return Color.WHITE;
+		else return null;
 		
 	}
 	
-	public void setDirection(float angle) {
+	public float getDistance() {
 		
-		cone_light.setDirection(angle);
+		if (this instanceof WhiteCrystal) return 5f;
+		else return 0f;
+		
+	}
+	
+	public float getConeDegree() {
+		
+		if (this instanceof WhiteCrystal) return 10f;
+		else return 0f;
 		
 	}
 

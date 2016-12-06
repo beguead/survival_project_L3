@@ -1,4 +1,4 @@
-package dungeon;
+package utilities;
 
 public class UnionFind {
 	

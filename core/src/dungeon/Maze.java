@@ -1,7 +1,5 @@
 package dungeon;
 
-import java.util.ArrayList;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -19,6 +17,7 @@ import characters.Enemy;
 import characters.Player;
 import screens.GameScreen;
 import utilities.Constants;
+import utilities.UnionFind;
 
 public class Maze implements Disposable {
 
@@ -33,43 +32,26 @@ public class Maze implements Disposable {
     	player = new Player();
     	createTiledMaze();
 		renderer = new OrthogonalTiledMapRenderer(map, GameScreen.batch);
-		
-	}
-	
-	public void update(float delta) {
-		
-		player.update(delta);
-		
-		for (MapObject obj : map.getLayers().get("walls").getObjects()) {
-			
-			if (obj instanceof Brazier) {
-			
-	                Brazier brazier = (Brazier) obj;
-	                brazier.update(delta);
-	                
-			}
-		}
-	}
-	
-	public void render(float delta) {
 
+	}
+	
+	public void updateAndRender(float delta) {
+		
 		renderer.setView(GameScreen.game_cam);
-		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("floor"));	
-		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("walls"));
+		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("background"));
 		
 		for (MapObject obj : map.getLayers().get("walls").getObjects()) {
 			
 			if (obj instanceof Brazier) {
 			
 	                Brazier brazier = (Brazier) obj;
-	                brazier.update(delta);
-	                brazier.render();
+	                brazier.updateAndRender(delta);
 	                
 			}
 		}
-
-
-		player.render();
+		
+		player.updateAndRender(delta);
+		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("walls"));
 		
 	}	
 
@@ -83,15 +65,17 @@ public class Maze implements Disposable {
 		
 		map = new TiledMap();
 		MapLayers layers = map.getLayers();	
-		TiledMapTileLayer floor = new TiledMapTileLayer(Constants.MAP_WIDTH,  Constants.MAP_HEIGHT,  Constants.TILE_WIDTH, Constants.TILE_HEIGHT);
+		TiledMapTileLayer background = new TiledMapTileLayer(Constants.MAP_WIDTH,  Constants.MAP_HEIGHT,  Constants.TILE_WIDTH, Constants.TILE_HEIGHT);
 		TiledMapTileLayer tmtl = new TiledMapTileLayer(Constants.MAP_WIDTH,  Constants.MAP_HEIGHT,  Constants.TILE_WIDTH, Constants.TILE_HEIGHT);
-		MapObjects mo = tmtl.getObjects();
+		MapObjects brazier = tmtl.getObjects();
 		
 		char blueprint[][] = createBluePrint();
 		Cell w = new Cell();
-		w.setTile(new StaticTiledMapTile(new TextureRegion (new Texture(Gdx.files.internal("environment/wall.png")))));
+		w.setTile(new StaticTiledMapTile(new TextureRegion(new Texture(Gdx.files.internal("environment/wall.png")))));
+		Cell hw = new Cell();
+		hw.setTile(new StaticTiledMapTile(new TextureRegion(new Texture(Gdx.files.internal("environment/halfwall.png")))));
 		Cell f = new Cell();
-		f.setTile(new StaticTiledMapTile(new TextureRegion (new Texture(Gdx.files.internal("environment/floor.png")))));
+		f.setTile(new StaticTiledMapTile(new TextureRegion(new Texture(Gdx.files.internal("environment/floor.png")))));
 		
 		for (int i = 0 ; i < Constants.MAP_WIDTH ; ++i) 
 			for (int j = 0 ; j < Constants.MAP_HEIGHT ; ++j) {
@@ -100,38 +84,42 @@ public class Maze implements Disposable {
 					
 					case 'w' : {
 						
-						tmtl.setCell(i, j, w);
-						mo.add(new Wall(i, j));
+						background.setCell(i, j, w);
+						
+						if ((j == Constants.MAP_HEIGHT - 1 || blueprint[i][j + 1] != 'w')) {
+							
+							tmtl.setCell(i, j, hw);
+							new Wall(i, j, false, (j == 0 || blueprint[i][j - 1] == 'w'));
+							
+						} else new Wall(i, j, true, (j == 0 || blueprint[i][j - 1] == 'w'));
 						break;
 						
 					}
 					
 					case 'c' : {
 						
-						mo.add(new CommonBrazier(i, j));
-						
+						background.setCell(i, j, f);
+						brazier.add(new CommonBrazier(i, j));
 						break;
 						
 					}
 					
 					case 'e' : {
 						
-						mo.add(new ElderBrazier(i, j));
-						
+						background.setCell(i, j, f);
+						brazier.add(new ElderBrazier(i, j));
 						break;
 						
 					}
 					
-					default : {}
+					default : { background.setCell(i, j, f); }
 					
 				}
 				
-				floor.setCell(i, j, f);
-				
 			}
 		
-		layers.add(floor);	
-		map.getLayers().get(0).setName("floor");
+		layers.add(background);	
+		map.getLayers().get(0).setName("background");
 		layers.add(tmtl);
 		map.getLayers().get(1).setName("walls");
 		
@@ -199,14 +187,14 @@ public class Maze implements Disposable {
 					if (i % 2 == 0 && j % 2 == 0) blueprint[i][j] = 'w';
 					else {
 						
-						if (	(((j < Constants.MAP_HEIGHT - 1 && i % 2 == 0 && vertical_walls[(i / 2) - 1][j / 2]))
-					 				||
-					 				((i < Constants.MAP_WIDTH - 1 && j % 2 == 0 && horizontal_walls[i / 2][(j / 2) - 1])))
-					 				&&
-					 				Math.random() < 0.9f) blueprint[i][j] = 'w';
+						if (	Math.random() < 0.75f
+								&&
+								(((j < Constants.MAP_HEIGHT - 1 && i % 2 == 0 && vertical_walls[(i / 2) - 1][j / 2]))
+					 			||
+					 			((i < Constants.MAP_WIDTH - 1 && j % 2 == 0 && horizontal_walls[i / 2][(j / 2) - 1])))) blueprint[i][j] = 'w';
 						else  {
 							
-							if (	Math.random() < 0.10f 
+							if (	Math.random() < 0.03f 
 									&&
 									blueprint[i - 1][j] != 'c' && blueprint[i - 1][j] != 'e'
 									&&

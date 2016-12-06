@@ -44,6 +44,16 @@ public class GameInputManager implements InputProcessor {
 				
 				}
 				
+				break;
+				
+			}
+			
+			case Keys.F1: {
+
+				GameScreen.debug_renderer = !GameScreen.debug_renderer;
+				
+				break;
+				
 			}
 			
 			default : {}
@@ -66,7 +76,14 @@ public class GameInputManager implements InputProcessor {
 
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
-		if (button == Input.Buttons.LEFT) Maze.player.is_moving = true;
+		if (button == Input.Buttons.LEFT) {
+			
+			double angle = getMouseAngle(screenX, screenY);
+			
+			Maze.player.is_moving = true;
+			Maze.player.move((float)(Math.cos(angle)), (float)(Math.sin(angle)));
+			
+		}
 		
 		return false;
 	}
@@ -90,9 +107,7 @@ public class GameInputManager implements InputProcessor {
 		if (Maze.player.is_moving) Maze.player.move((float)(Math.cos(angle)), (float)(Math.sin(angle)));
 		
 		angle *= Constants.TO_DEGREE;
-		
 		Maze.player.setDirection((float)angle);
-		Maze.player.crystal.setDirection((float)angle);
 		
 		return false;
 	}
@@ -100,7 +115,10 @@ public class GameInputManager implements InputProcessor {
 
 	public boolean mouseMoved(int screenX, int screenY) {
 		
-		Maze.player.crystal.setDirection((float)(Constants.TO_DEGREE * getMouseAngle(screenX, screenY)));
+		double angle = getMouseAngle(screenX, screenY);
+		
+		angle *= Constants.TO_DEGREE;
+		Maze.player.setDirection((float)angle);
 			
 		return false;
 		
