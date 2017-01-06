@@ -2,7 +2,6 @@ package items;
 
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 
 public abstract class Crystal {
 	

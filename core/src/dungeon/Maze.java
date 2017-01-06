@@ -1,5 +1,7 @@
 package dungeon;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -13,8 +15,9 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.utils.Disposable;
 
-import characters.Enemy;
+import characters.Berserker;
 import characters.Player;
+import interfaces.Enemy;
 import screens.GameScreen;
 import utilities.Constants;
 import utilities.UnionFind;
@@ -23,7 +26,7 @@ public class Maze implements Disposable {
 
 	public static Player player;
 	
-	private Enemy[] enemys;
+	private ArrayList<Enemy> enemys;
 	private TiledMap map;
 	private OrthogonalTiledMapRenderer renderer;
 	
@@ -32,6 +35,9 @@ public class Maze implements Disposable {
     	player = new Player();
     	createTiledMaze();
 		renderer = new OrthogonalTiledMapRenderer(map, GameScreen.batch);
+		
+		enemys = new ArrayList<Enemy>();
+		enemys.add(new Berserker());
 
 	}
 	
@@ -50,7 +56,9 @@ public class Maze implements Disposable {
 			}
 		}
 		
-		player.updateAndRender(delta);
+		for (Enemy e : enemys) e.updateAndRender();
+		
+		player.updateAndRender();
 		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("walls"));
 		
 	}	
@@ -64,12 +72,14 @@ public class Maze implements Disposable {
 	private void createTiledMaze() {
 		
 		map = new TiledMap();
+		
 		MapLayers layers = map.getLayers();	
 		TiledMapTileLayer background = new TiledMapTileLayer(Constants.MAP_WIDTH,  Constants.MAP_HEIGHT,  Constants.TILE_WIDTH, Constants.TILE_HEIGHT);
 		TiledMapTileLayer tmtl = new TiledMapTileLayer(Constants.MAP_WIDTH,  Constants.MAP_HEIGHT,  Constants.TILE_WIDTH, Constants.TILE_HEIGHT);
 		MapObjects brazier = tmtl.getObjects();
 		
 		char blueprint[][] = createBluePrint();
+		
 		Cell w = new Cell();
 		w.setTile(new StaticTiledMapTile(new TextureRegion(new Texture(Gdx.files.internal("environment/wall.png")))));
 		Cell hw = new Cell();
@@ -86,7 +96,7 @@ public class Maze implements Disposable {
 						
 						background.setCell(i, j, w);
 						
-						if ((j == Constants.MAP_HEIGHT - 1 || blueprint[i][j + 1] != 'w')) {
+						if ((j < Constants.MAP_HEIGHT - 1 && blueprint[i][j + 1] != 'w')) {
 							
 							tmtl.setCell(i, j, hw);
 							new Wall(i, j, false, (j == 0 || blueprint[i][j - 1] == 'w'));
@@ -112,7 +122,11 @@ public class Maze implements Disposable {
 						
 					}
 					
-					default : { background.setCell(i, j, f); }
+					default : { 
+						
+						background.setCell(i, j, f); 
+						
+					}
 					
 				}
 				

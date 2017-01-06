@@ -13,7 +13,7 @@ import utilities.Assets;
 import utilities.BodyCreator;
 import utilities.Constants;
 
-public abstract class Brazier extends MapObject{
+public abstract class Brazier extends MapObject {
 
 	protected Body b;
 	protected Aura aura;
@@ -29,7 +29,7 @@ public abstract class Brazier extends MapObject{
 
 		b = BodyCreator.createCircleBody(	BodyDef.BodyType.StaticBody,
 											new Vector2(x + Constants.TILE_WIDTH / (2 * Constants.PPM), y + Constants.TILE_HEIGHT / (2 * Constants.PPM)),
-											current_frame.getRegionWidth() / (2 * Constants.PPM), true, Constants.BRAZIER_FILTER, Constants.CHARACTER_FILTER, this);
+											current_frame.getRegionWidth() / (2 * Constants.PPM), true, Constants.SENSOR_FILTER, Constants.CHARACTER_FILTER, this);
 	
 	}
 	

@@ -2,8 +2,6 @@ package screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
@@ -13,13 +11,12 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 
 import box2dLight.Light;
-import box2dLight.PointLight;
 import box2dLight.RayHandler;
 import dungeon.Maze;
+import managers.GameInputManager;
+import managers.SensorManager;
 import utilities.Assets;
 import utilities.Constants;
-import utilities.GameInputManager;
-import utilities.SensorManager;
 
 public class GameScreen implements Screen {
 	
@@ -53,14 +50,13 @@ public class GameScreen implements Screen {
     	ray_handler = new RayHandler(world);
     	ray_handler.setBlur(false);
     	ray_handler.setAmbientLight(42 / 225f, 42 / 225f, 42 / 225f, 0f);
-    	Light.setGlobalContactFilter(Constants.LIGHT_FILTER, (short)0, (short)(Constants.CHARACTER_FILTER | Constants.WALL_FILTER | Constants.HALF_WALL_FILTER));
+    	Light.setGlobalContactFilter(Constants.LIGHT_FILTER, (short)0, (short)(Constants.CHARACTER_FILTER | Constants.WALL_FILTER | Constants.ENEMY_FILTER));
     	
     	Assets.load();
     	
     	dungeon = new Maze();
     	
-    	paused = false;
-    	debug_renderer = true;
+    	debug_renderer = paused = false;
     	
     }	
 	

@@ -51,13 +51,12 @@ public final class BodyCreator {
 		shape.dispose();
 			
 		body.setTransform(initial_position.x, initial_position.y, 0f);
-			
 		
 		return body;
 		
 	}
 	
-	private static PolygonShape createBoxShape(Body b, float width, float height) {
+	public static PolygonShape createBoxShape(Body b, float width, float height) {
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(width, height, new Vector2(b.getPosition().x + width, b.getPosition().y + height), 0f);
@@ -66,7 +65,7 @@ public final class BodyCreator {
 		
 	}
 	
-	private static CircleShape createCircleShape(Body b, float radius) {
+	public static CircleShape createCircleShape(Body b, float radius) {
 		
 		CircleShape shape = new CircleShape();
 		shape.setRadius(radius);
@@ -76,7 +75,7 @@ public final class BodyCreator {
 		
 	}
 	
-	private static FixtureDef createFixtureDef(Shape shape) {
+	public static FixtureDef createFixtureDef(Shape shape) {
 		
 		FixtureDef fdef = new FixtureDef();
 		fdef.shape = shape;

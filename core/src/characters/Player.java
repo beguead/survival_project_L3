@@ -4,11 +4,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import box2dLight.ConeLight;
-import interfaces.ICharacter;
 import items.Crystal;
 import items.WhiteCrystal;
 import lights.Aura;
@@ -17,12 +15,10 @@ import utilities.Assets;
 import utilities.BodyCreator;
 import utilities.Constants;
 
-public class Player implements ICharacter {
+public class Player extends Character {
 	
-	public boolean is_moving;
-	private float speed;
+	public boolean moving, sneak;
 	
-	private Body b;
 	private TextureRegion current_frame;
 	private Animation current_animation;
 
@@ -33,32 +29,32 @@ public class Player implements ICharacter {
 	public Player() {
 		
 		/*Movements*/
-		speed = 2f;
-		is_moving = false;
+		speed = 1.5f;
+		moving = sneak = false;
 		current_frame = Assets.player_walk_down_animation.getKeyFrame(0);
 		
-		b = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody,
-											new Vector2(1.5f, 1.25f),
-											current_frame.getRegionWidth() / (4 * Constants.PPM), false, Constants.CHARACTER_FILTER, (short)(Constants.WALL_FILTER | Constants.BRAZIER_FILTER | Constants.LIGHT_FILTER) , this);
+		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody,
+											new Vector2(1.5f, 1.5f),
+											current_frame.getRegionWidth() / (4 * Constants.PPM), false, Constants.CHARACTER_FILTER, (short)(Constants.WALL_FILTER | Constants.SENSOR_FILTER | Constants.LIGHT_FILTER) , this);
 		
 		/*Lights*/
-		aura = new Aura(b, Color.WHITE, 0.3f);
+		aura = new Aura(body, Color.WHITE, 0.3f);
 		crystal = new WhiteCrystal();
 		
-		cone_light = new ConeLight(GameScreen.ray_handler, 100, crystal.getColor(), crystal.getDistance(), b.getPosition().x, b.getPosition().y, 0f, crystal.getConeDegree());
+		cone_light = new ConeLight(GameScreen.ray_handler, 100, crystal.getColor(), crystal.getDistance(), body.getPosition().x, body.getPosition().y, 0f, crystal.getConeDegree());
 		cone_light.setXray(false);
 		cone_light.setSoftnessLength(0f);
 		
 	}
 	
-	private void die() {
+	public void die() {
 		
 		aura.dispose();
 		cone_light.dispose();
 		
 	}
 	
-	public void setElderVision (boolean b) {
+	/*public void setElderVision (boolean b) {
 		
 		cone_light.setXray(b);
 		
@@ -69,7 +65,7 @@ public class Player implements ICharacter {
 			
 		} else setCrystal(crystal);
 		
-	}
+	}*/
 	
 	public void setCrystal(Crystal c) {
 		
@@ -81,9 +77,12 @@ public class Player implements ICharacter {
 		
 	}
 
-	public void setDirection(float angle) {
+	public void setDirection(double angle) {
 		
-		cone_light.setDirection(angle);
+		direction = angle;
+		angle *= Constants.TO_DEGREE;
+		
+		cone_light.setDirection((float)angle);
 		
 		if (Math.abs(angle) < 22.5f) current_animation = Assets.player_walk_right_animation;
 		else {
@@ -113,17 +112,16 @@ public class Player implements ICharacter {
 		}	
 	}
 
-	public void move(float x, float y) { b.setLinearVelocity(x * speed, y * speed); }
-
-	public Vector2 getPosition() { return b.getPosition(); }
-
-	public void updateAndRender(float delta) {
+	public void updateAndRender() {
 		
-		float key_frame;
-		
-		if (is_moving) key_frame =  GameScreen.state_time;
-		else key_frame = 0f;
-		current_frame = current_animation.getKeyFrame(key_frame);
+		if (moving) {
+			
+			current_frame = current_animation.getKeyFrame(GameScreen.state_time);
+			if (sneak) speed = 1f;
+			else speed = 2f;
+			move();
+			
+		} else body.setLinearVelocity(0f, 0f);
 		
 		cone_light.setPosition(getPosition());	// Light updating
 		
@@ -133,5 +131,4 @@ public class Player implements ICharacter {
 	
 		
 	}
-
 }
