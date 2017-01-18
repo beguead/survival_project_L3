@@ -9,23 +9,10 @@ import utilities.Constants;
 
 public class Wall extends MapObject {
 	
-	public Wall(float x, float y, boolean wall_above, boolean wall_bellow) {
+	public Wall(float x, float y) {
 			
-			float height = Constants.TILE_WIDTH / (2 * Constants.PPM);
-			
-			if (!wall_above) {
-				
-				BodyCreator.createBoxBody(	BodyDef.BodyType.StaticBody, new Vector2(x, y + 0.75f), Constants.TILE_WIDTH / (2 * Constants.PPM), Constants.TILE_HEIGHT / (8 * Constants.PPM),
-											true, Constants.HALF_WALL_FILTER, (short)0, this);
-				height -= Constants.TILE_WIDTH / (8 * Constants.PPM);
-				
-			}
-			
-			if (!wall_bellow) BodyCreator.createBoxBody(	BodyDef.BodyType.StaticBody, new Vector2(x, y + 0.25f), Constants.TILE_WIDTH / (2 * Constants.PPM), height - Constants.TILE_WIDTH / (8 * Constants.PPM),
-															false, Constants.WALL_FILTER, (short)(Constants.CHARACTER_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER), this);
-			else BodyCreator.createBoxBody(	BodyDef.BodyType.StaticBody, new Vector2(x, y), Constants.TILE_WIDTH / (2 * Constants.PPM), height,
-											false, Constants.WALL_FILTER, (short)(Constants.CHARACTER_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER), this);
+		BodyCreator.createBoxBody(	BodyDef.BodyType.StaticBody, new Vector2(x, y), Constants.TILE_WIDTH / (2 * Constants.PPM), Constants.TILE_WIDTH / (2 * Constants.PPM),
+									false, Constants.WALL_FILTER, (short)(Constants.PLAYER_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER | Constants.ITEM_FILTER), this);
 		
 	}
-	
 }

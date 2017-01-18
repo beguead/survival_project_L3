@@ -1,14 +1,15 @@
 package characters;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import box2dLight.ConeLight;
-import items.Crystal;
-import items.WhiteCrystal;
+import dungeon.Maze;
+import items.BlueCore;
+import items.Core;
+import items.GreenCore;
+import items.YellowCore;
 import lights.Aura;
 import screens.GameScreen;
 import utilities.Assets;
@@ -17,118 +18,113 @@ import utilities.Constants;
 
 public class Player extends Character {
 	
-	public boolean moving, sneak;
+	public boolean moving;
 	
-	private TextureRegion current_frame;
-	private Animation current_animation;
-
 	private Aura aura;
-	public Crystal crystal;
-	protected ConeLight cone_light;
+	private Core core;
+	private ConeLight cone_light;
+	private Sprite sprite;
 	
 	public Player() {
+		super();
+		sprite = Assets.player_base;
 		
 		/*Movements*/
-		speed = 1.5f;
-		moving = sneak = false;
-		current_frame = Assets.player_walk_down_animation.getKeyFrame(0);
+		speed = 1f;
+		moving = false;
 		
-		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody,
-											new Vector2(1.5f, 1.5f),
-											current_frame.getRegionWidth() / (4 * Constants.PPM), false, Constants.CHARACTER_FILTER, (short)(Constants.WALL_FILTER | Constants.SENSOR_FILTER | Constants.LIGHT_FILTER) , this);
+		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody, Maze.getRandomFreePosition(), 0.2f, false, Constants.PLAYER_FILTER,
+												(short)(Constants.WALL_FILTER | Constants.ITEM_FILTER | Constants.SENSOR_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER) , this	);
 		
 		/*Lights*/
 		aura = new Aura(body, Color.WHITE, 0.3f);
-		crystal = new WhiteCrystal();
-		
-		cone_light = new ConeLight(GameScreen.ray_handler, 100, crystal.getColor(), crystal.getDistance(), body.getPosition().x, body.getPosition().y, 0f, crystal.getConeDegree());
-		cone_light.setXray(false);
-		cone_light.setSoftnessLength(0f);
+		cone_light = new ConeLight(GameScreen.ray_handler, 100, Color.WHITE, 0f, body.getPosition().x, body.getPosition().y, 0f, 0f);
+		cone_light.setSoftnessLength(0.1f);
 		
 	}
 	
-	public void die() {
+	@Override
+	public void dispose() {
 		
 		aura.dispose();
 		cone_light.dispose();
 		
 	}
 	
-	/*public void setElderVision (boolean b) {
+	private void dropCore() {
 		
-		cone_light.setXray(b);
+		core.is_on_the_map = true;
+		core.setPosition(getPosition());
+		core = null;
 		
-		if (b) {
-			
-			cone_light.setColor(Color.CYAN);
-			cone_light.setDistance(10f);
-			
-		} else setCrystal(crystal);
-		
-	}*/
+	}
 	
-	public void setCrystal(Crystal c) {
+	public void setCore(Core core) {
 		
-		crystal = c;
+		Color c;
 		
-		cone_light.setColor(crystal.getColor());
-		cone_light.setDistance(crystal.getDistance());
-		cone_light.setConeDegree(crystal.getConeDegree());
+		if (this.core != null) dropCore();
+		
+		core.is_on_the_map = false;
+		this.core = core;
+		
+		if (core instanceof BlueCore) {
+			
+			c = Color.CYAN;
+			sprite = Assets.player_blue;
+			
+		} else {
+			
+			if (core instanceof GreenCore) {
+				
+				c = Color.GREEN;
+				sprite = Assets.player_green;
+			
+			} else {
+						
+				if (core instanceof YellowCore) {
+						
+					c = Color.YELLOW;
+					sprite = Assets.player_yellow;
+							
+				} else { 
+						
+					c = Color.WHITE;
+					sprite = Assets.player_base;	
+					
+				}
+			}
+		}
+		
+		aura.setColor(c);
+		cone_light.setColor(c);
+		cone_light.setDistance(core.getDistance());
+		cone_light.setConeDegree(core.getConeDegree());
+	    sprite.setRotation((float)(direction * Constants.TO_DEGREE));
 		
 	}
 
 	public void setDirection(double angle) {
 		
 		direction = angle;
-		angle *= Constants.TO_DEGREE;
 		
-		cone_light.setDirection((float)angle);
+		float angle_in_degree = (float)(angle * Constants.TO_DEGREE);
+		cone_light.setDirection(angle_in_degree);
+		if (core instanceof BlueCore) ((BlueCore)core).setDirection(angle_in_degree + 180);
+	    sprite.setRotation(angle_in_degree);
 		
-		if (Math.abs(angle) < 22.5f) current_animation = Assets.player_walk_right_animation;
-		else {
-		
-			if (Math.abs(angle) < 67.5f) {
-				
-				if (angle > 0f) current_animation = Assets.player_walk_right_up_animation;
-				else current_animation = Assets.player_walk_right_down_animation;
-				
-			} else {
-				
-				if (Math.abs(angle) < 112.5f) {
-					
-					if (angle > 0f) current_animation = Assets.player_walk_up_animation;
-					else current_animation = Assets.player_walk_down_animation;
-					
-				} else {
-					
-					if (Math.abs(angle) < 157.5f) {
-						
-						if (angle > 0f) current_animation = Assets.player_walk_left_up_animation;
-						else current_animation = Assets.player_walk_left_down_animation;
-						
-					} else current_animation = Assets.player_walk_left_animation;			
-				}
-			}	
-		}	
 	}
 
-	public void updateAndRender() {
+	protected void update() {
 		
-		if (moving) {
-			
-			current_frame = current_animation.getKeyFrame(GameScreen.state_time);
-			if (sneak) speed = 1f;
-			else speed = 2f;
-			move();
-			
-		} else body.setLinearVelocity(0f, 0f);
-		
-		cone_light.setPosition(getPosition());	// Light updating
-		
-		GameScreen.batch.draw(	current_frame,
-								getPosition().x * Constants.PPM - current_frame.getRegionWidth() / 2,
-								getPosition().y * Constants.PPM - current_frame.getRegionHeight() / 2);
-	
+		if (moving) move();
+		else body.setLinearVelocity(0f, 0f);
+		cone_light.setPosition(getPosition());
+		core.setPosition(getPosition());
+	    sprite.setPosition(getPosition().x * Constants.PPM - Constants.SPRITE_SIZE / 2, getPosition().y * Constants.PPM - Constants.SPRITE_SIZE / 2);
 		
 	}
+	
+	protected void render() { sprite.draw(GameScreen.batch); }
+	
 }

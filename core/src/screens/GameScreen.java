@@ -13,12 +13,16 @@ import com.badlogic.gdx.physics.box2d.World;
 import box2dLight.Light;
 import box2dLight.RayHandler;
 import dungeon.Maze;
+import dungeon.Portal;
+import items.Core;
 import managers.GameInputManager;
 import managers.SensorManager;
 import utilities.Assets;
 import utilities.Constants;
 
 public class GameScreen implements Screen {
+	
+	public static boolean spark_catched;
 	
 	public static Maze dungeon;
 	public static OrthographicCamera game_cam;
@@ -30,7 +34,7 @@ public class GameScreen implements Screen {
 	private Box2DDebugRenderer b2dr;
 	private Matrix4 debugmatrix;
 	
-	public static boolean paused;
+	public static boolean pause;
 	public static boolean debug_renderer;
 
 	public GameScreen() {
@@ -48,15 +52,14 @@ public class GameScreen implements Screen {
     	world.setContactListener(new SensorManager());
     	
     	ray_handler = new RayHandler(world);
-    	ray_handler.setBlur(false);
-    	ray_handler.setAmbientLight(42 / 225f, 42 / 225f, 42 / 225f, 0f);
-    	Light.setGlobalContactFilter(Constants.LIGHT_FILTER, (short)0, (short)(Constants.CHARACTER_FILTER | Constants.WALL_FILTER | Constants.ENEMY_FILTER));
+    	ray_handler.setAmbientLight(0);
+    	Light.setGlobalContactFilter(Constants.LIGHT_FILTER, (short)0, (short)(Constants.PLAYER_FILTER | Constants.WALL_FILTER | Constants.ENEMY_FILTER));
     	
     	Assets.load();
     	
     	dungeon = new Maze();
     	
-    	debug_renderer = paused = false;
+    	debug_renderer = pause = spark_catched = false;
     	
     }	
 	
@@ -71,21 +74,35 @@ public class GameScreen implements Screen {
 		
 		debugmatrix = batch.getProjectionMatrix().cpy().scale(Constants.PPM, Constants.PPM, 0);
 		
-		if (!paused) {
+		if (!pause) {
+			
+			if (Maze.portal == null && spark_catched) {
+				
+				Maze.portal = new Portal();
+				Maze.cortana.dispose();
+				Maze.cortana = null;
+				
+			}
+			
+			for (Core c : Maze.cores) {
+				
+				if (c.getBody().isActive() && !c.is_on_the_map) c.setBodyActive(false);
+				else if (!c.getBody().isActive() && c.is_on_the_map) c.setBodyActive(true);
+			}
 			
 			world.step(1 / 60f, 6, 2);
 			gameCamUpdate();
-			
+		
+			ray_handler.setCombinedMatrix(debugmatrix);
+			batch.setProjectionMatrix(game_cam.combined);
+		
+			batch.begin();
+			dungeon.updateAndRender(delta);
+			batch.end();
+		
+			ray_handler.updateAndRender();
+		
 		}
-		
-		ray_handler.setCombinedMatrix(debugmatrix);
-		batch.setProjectionMatrix(game_cam.combined);
-		
-		batch.begin();
-		dungeon.updateAndRender(delta);
-		batch.end();
-		
-		ray_handler.updateAndRender();
 		
 		if (debug_renderer) b2dr.render(world, debugmatrix);
 		

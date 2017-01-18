@@ -6,10 +6,17 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 
-import characters.Berserker;
+import characters.Parasite;
+import characters.Entity;
+import dungeon.Maze;
+import dungeon.Portal;
+import items.BlueCore;
+import items.Core;
+import items.GreenCore;
+import items.WhiteCore;
+import items.YellowCore;
+import screens.GameScreen;
 import characters.Player;
-import dungeon.Wall;
-import utilities.Constants.berserker_state;
 
 public class SensorManager implements ContactListener {
 
@@ -18,53 +25,55 @@ public class SensorManager implements ContactListener {
 		Fixture fa = contact.getFixtureA();
 		Fixture fb = contact.getFixtureB();
 			
-		if ((fa.getUserData() instanceof Player && fb.getUserData() instanceof Berserker) || (fa.getUserData() instanceof Berserker && fb.getUserData() instanceof Player)) {
+		if (isContactBetween(fa, fb, Player.class, Parasite.class)) {
 			
-			Berserker b;
-			boolean hearing; //The Berserker has heard the player
+			Parasite s;
+			boolean near_of_player;
 
 			if (fa.getUserData() instanceof Player) {
-				
-				b = (Berserker)(fb.getUserData());
-				hearing = fb.isSensor();
-				
+			
+				s = (Parasite)(fb.getUserData());
+				near_of_player = fb.isSensor();
+			
 			} else {
-				
-				b = (Berserker)(fa.getUserData());
-				hearing = fa.isSensor();
+			
+				s = (Parasite)(fa.getUserData());
+				near_of_player = fa.isSensor();
+			
+			}
+			
+			if (near_of_player) {
 				
 			}
-				
-			if (hearing) b.canHearThePlayer(true);
-			else /*Maze.player.die()*/;
-			
 		} else {
 			
-			if ((fa.getUserData() instanceof Wall && fb.getUserData() instanceof Berserker) || (fa.getUserData() instanceof Berserker && fb.getUserData() instanceof Wall)) {
-				
-				Berserker b;
-				boolean hearing; //The Berserker has heard the player
-
-				if (fa.getUserData() instanceof Wall) {
-				
-					b = (Berserker)(fb.getUserData());
-					hearing = fb.isSensor();
-				
-				} else {
-				
-					b = (Berserker)(fa.getUserData());
-					hearing = fa.isSensor();
-				
-				}
-				
-				if (!hearing) {
+			if (isContactBetween(fa, fb, Player.class, Core.class)) {
 					
-					if (b.getState() == berserker_state.Rage && System.currentTimeMillis() >= b.getTimer() - 3500) b.majState(berserker_state.Stunned);
-					else b.purchaseThePlayer();
-					
-				}
-			}
-		}		
+					if (Maze.core_near_the_player == null) {
+						
+						Core c;
+						if (fa.getUserData() instanceof Core) {
+							
+							if (fa.getUserData() instanceof BlueCore) c = (BlueCore)(fa.getUserData());
+							else	if (fa.getUserData() instanceof GreenCore) c = (GreenCore)(fa.getUserData());
+									else	if (fa.getUserData() instanceof YellowCore) c = (YellowCore)(fa.getUserData());
+											else c = (WhiteCore)(fa.getUserData());
+							
+						} else {
+							
+							if (fb.getUserData() instanceof BlueCore) c = (BlueCore)(fb.getUserData());
+							else	if (fb.getUserData() instanceof GreenCore) c = (GreenCore)(fb.getUserData());
+									else	if (fb.getUserData() instanceof YellowCore) c = (YellowCore)(fb.getUserData());
+											else c = (WhiteCore)(fb.getUserData());						
+							
+						}
+						Maze.core_near_the_player = c;	
+					}
+				
+			} else	if (isContactBetween(fa, fb, Player.class, Entity.class)) GameScreen.spark_catched = true;
+					else if (isContactBetween(fa, fb, Player.class, Portal.class)) System.out.println("EndOfTheGame");
+			
+		}
 	}
 
 	@Override
@@ -72,25 +81,10 @@ public class SensorManager implements ContactListener {
 		Fixture fa = contact.getFixtureA();
 		Fixture fb = contact.getFixtureB();
 		
-		if ((fa.getUserData() instanceof Player && fb.getUserData() instanceof Berserker) || (fa.getUserData() instanceof Berserker && fb.getUserData() instanceof Player)) {
+		if (isContactBetween(fa, fb, Player.class, Core.class)) {
 			
-			Berserker b;
-			boolean hearing; //The Berserker has heard the player
-
-			if (fa.getUserData() instanceof Player) {
-				
-				b = (Berserker)(fb.getUserData());
-				hearing = fb.isSensor();
-				
-			} else {
-				
-				b = (Berserker)(fa.getUserData());
-				hearing = fa.isSensor();
-				
-			}
-				
-			if (hearing) b.canHearThePlayer(false);
-
+			if (Maze.core_near_the_player != null) Maze.core_near_the_player = null;
+			
 		}
 	}
 		
@@ -102,4 +96,10 @@ public class SensorManager implements ContactListener {
 	@Override
 	public void postSolve(Contact contact, ContactImpulse impulse) {}
 
+	private boolean isContactBetween(Fixture fa, Fixture fb, Class<?> ca, Class<?> cb) {
+		
+		return ((ca.isInstance(fa.getUserData()) && cb.isInstance(fb.getUserData())) || (cb.isInstance(fb.getUserData()) && ca.isInstance(fa.getUserData())));
+				
+	}
+	
 }

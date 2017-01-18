@@ -1,43 +1,78 @@
 package dungeon;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayers;
-import com.badlogic.gdx.maps.MapObject;
-import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
 
-import characters.Berserker;
+import characters.Parasite;
+import characters.Entity;
+import characters.AI;
 import characters.Player;
-import interfaces.Enemy;
+import items.BlueCore;
+import items.Core;
+import items.GreenCore;
+import items.WhiteCore;
+import items.YellowCore;
+import pathfinding.Graph;
 import screens.GameScreen;
 import utilities.Constants;
 import utilities.UnionFind;
 
 public class Maze implements Disposable {
 
+	private static Graph graph;
+	public static Entity cortana;
 	public static Player player;
+	public static Portal portal;
 	
-	private ArrayList<Enemy> enemys;
+	private static ArrayList<AI> parasites;
+	public static ArrayList<Core> cores;
+	public static Core core_near_the_player;
 	private TiledMap map;
 	private OrthogonalTiledMapRenderer renderer;
 	
 	public Maze() {
 		
-    	player = new Player();
+		core_near_the_player = null;
+		
+    	graph = new Graph();
     	createTiledMaze();
 		renderer = new OrthogonalTiledMapRenderer(map, GameScreen.batch);
 		
-		enemys = new ArrayList<Enemy>();
-		enemys.add(new Berserker());
+    	player = new Player();
+    	parasites = new ArrayList<AI>();
+    	
+		WhiteCore start_core = new WhiteCore();
+		player.setCore(start_core);
+		cores = new ArrayList<Core>();
+		cores.add(start_core);
+		
+		for (int i = 0 ; i < Constants.MAP_WIDTH * Constants.MAP_HEIGHT / 50 ; ++i) {
+			
+			parasites.add(new Parasite());
+			
+			double r = Math.random();
+				
+			if (r < 0.25d) cores.add(new BlueCore());
+			else 	if (r < 0.50d) cores.add(new GreenCore());
+					else if (r < 0.75d) cores.add(new YellowCore());
+				
+			
+		}
+		
+		cortana = new Entity();
+		portal = null;
 
 	}
 	
@@ -46,20 +81,14 @@ public class Maze implements Disposable {
 		renderer.setView(GameScreen.game_cam);
 		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("background"));
 		
-		for (MapObject obj : map.getLayers().get("walls").getObjects()) {
-			
-			if (obj instanceof Brazier) {
-			
-	                Brazier brazier = (Brazier) obj;
-	                brazier.updateAndRender(delta);
-	                
-			}
-		}
-		
-		for (Enemy e : enemys) e.updateAndRender();
+		for (Core c : cores) c.updateAndRender();
 		
 		player.updateAndRender();
+		for (AI ai : parasites) ai.updateAndRender();
+		
 		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("walls"));
+		if (cortana != null) cortana.updateAndRender();
+		if (portal != null) portal.render();
 		
 	}	
 
@@ -76,53 +105,31 @@ public class Maze implements Disposable {
 		MapLayers layers = map.getLayers();	
 		TiledMapTileLayer background = new TiledMapTileLayer(Constants.MAP_WIDTH,  Constants.MAP_HEIGHT,  Constants.TILE_WIDTH, Constants.TILE_HEIGHT);
 		TiledMapTileLayer tmtl = new TiledMapTileLayer(Constants.MAP_WIDTH,  Constants.MAP_HEIGHT,  Constants.TILE_WIDTH, Constants.TILE_HEIGHT);
-		MapObjects brazier = tmtl.getObjects();
 		
 		char blueprint[][] = createBluePrint();
 		
 		Cell w = new Cell();
 		w.setTile(new StaticTiledMapTile(new TextureRegion(new Texture(Gdx.files.internal("environment/wall.png")))));
-		Cell hw = new Cell();
-		hw.setTile(new StaticTiledMapTile(new TextureRegion(new Texture(Gdx.files.internal("environment/halfwall.png")))));
 		Cell f = new Cell();
 		f.setTile(new StaticTiledMapTile(new TextureRegion(new Texture(Gdx.files.internal("environment/floor.png")))));
 		
-		for (int i = 0 ; i < Constants.MAP_WIDTH ; ++i) 
+		for (int i = 0 ; i < Constants.MAP_WIDTH ; ++i)
 			for (int j = 0 ; j < Constants.MAP_HEIGHT ; ++j) {
+				
+				if (blueprint[i][j] != 'w') graph.addNode(i * Constants.MAP_HEIGHT + j);
 				
 				switch (blueprint[i][j]) {
 					
 					case 'w' : {
 						
 						background.setCell(i, j, w);
-						
-						if ((j < Constants.MAP_HEIGHT - 1 && blueprint[i][j + 1] != 'w')) {
-							
-							tmtl.setCell(i, j, hw);
-							new Wall(i, j, false, (j == 0 || blueprint[i][j - 1] == 'w'));
-							
-						} else new Wall(i, j, true, (j == 0 || blueprint[i][j - 1] == 'w'));
+						new Wall(i, j);
+
 						break;
 						
 					}
 					
-					case 'c' : {
-						
-						background.setCell(i, j, f);
-						brazier.add(new CommonBrazier(i, j));
-						break;
-						
-					}
-					
-					case 'e' : {
-						
-						background.setCell(i, j, f);
-						brazier.add(new ElderBrazier(i, j));
-						break;
-						
-					}
-					
-					default : { 
+					default : {
 						
 						background.setCell(i, j, f); 
 						
@@ -131,6 +138,8 @@ public class Maze implements Disposable {
 				}
 				
 			}
+		
+		graph.makeLinks();
 		
 		layers.add(background);	
 		map.getLayers().get(0).setName("background");
@@ -206,21 +215,8 @@ public class Maze implements Disposable {
 								(((j < Constants.MAP_HEIGHT - 1 && i % 2 == 0 && vertical_walls[(i / 2) - 1][j / 2]))
 					 			||
 					 			((i < Constants.MAP_WIDTH - 1 && j % 2 == 0 && horizontal_walls[i / 2][(j / 2) - 1])))) blueprint[i][j] = 'w';
-						else  {
-							
-							if (	Math.random() < 0.03f 
-									&&
-									blueprint[i - 1][j] != 'c' && blueprint[i - 1][j] != 'e'
-									&&
-									blueprint[i][j - 1] != 'c' && blueprint[i][j - 1] != 'e'
-									&&
-									blueprint[i - 1][j - 1] != 'c' && blueprint[i - 1][j - 1] != 'e') {
-								
-								if (Math.random() < 0.95f) blueprint[i][j] = 'c';
-								else blueprint[i][j] = 'e';
-							
-							} else blueprint[i][j] = '\0';	
-						}
+						
+						else blueprint[i][j] = '\0';
 					}
 				}			
 			}
@@ -228,4 +224,18 @@ public class Maze implements Disposable {
 		return blueprint;
 		
 	}
+	
+	public static ConcurrentLinkedQueue<Vector2> findShortestPath(Vector2 from, Vector2 to) {
+		return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), (int)((int)to.x * Constants.MAP_HEIGHT + to.y)); }
+	
+	public static ConcurrentLinkedQueue<Vector2> getRandomPath(Vector2 from) {
+		return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), graph.getRandomKey()); }
+	
+	public static Vector2 getRandomFreePosition() {
+		
+		int random_key = graph.getRandomKey();
+		return (new Vector2(random_key / Constants.MAP_HEIGHT + 0.5f, random_key % Constants.MAP_HEIGHT + 0.5f));
+		
+	}
+	
 }
