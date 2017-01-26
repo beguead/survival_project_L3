@@ -1,116 +1,145 @@
 package characters;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-
 import dungeon.Maze;
 import lights.Aura;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
 import utilities.Constants;
+import utilities.MathExtension;
 
-public class Parasite extends AI {
+public class Parasite extends Character {
 	
-	private enum parasite_state {normal, escape, hunt};
+	private static enum states {normal, hunting, lost};
+	private states state;
 	
-	private Aura aura;
-	private boolean rage;
-
+	private ConcurrentLinkedQueue<Vector2> path;
+	private Vector2 current_target;
+	
+	private boolean near_of_the_player;
+	
 	public Parasite() {
-		super();
-		
+
 		BodyDef bdef = new BodyDef();
 		bdef.type = BodyDef.BodyType.DynamicBody;
 		
 		body = GameScreen.world.createBody(bdef);
 			
-		CircleShape shape1 = BodyCreator.createCircleShape(body, 0.3f);
-		FixtureDef fdef1 = BodyCreator.createFixtureDef(shape1);
+		CircleShape body_fixture = BodyCreator.createCircleShape(body, 0.3f);
+		FixtureDef fdef1 = BodyCreator.createFixtureDef(body_fixture);
 		fdef1.filter.categoryBits = Constants.ENEMY_FILTER;
-		fdef1.filter.maskBits = (short)(Constants.WALL_FILTER | Constants.PLAYER_FILTER);
+		fdef1.filter.maskBits = (short)(Constants.WALL_FILTER | Constants.PLAYER_FILTER | Constants.LIGHT_FILTER);
 		body.createFixture(fdef1).setUserData(this);
-		shape1.dispose();
+		body_fixture.dispose();
 		
-		CircleShape shape2 = BodyCreator.createCircleShape(body, 1.5f);
-		FixtureDef fdef2 = BodyCreator.createFixtureDef(shape2);
+		CircleShape detection_field_fixture = BodyCreator.createCircleShape(body, 1.2f);
+		FixtureDef fdef2 = BodyCreator.createFixtureDef(detection_field_fixture);
 		fdef2.isSensor = true;
 		fdef2.filter.categoryBits = Constants.SENSOR_FILTER;
 		fdef2.filter.maskBits = (short)(Constants.PLAYER_FILTER);
 		body.createFixture(fdef2).setUserData(this);
-		shape2.dispose();
+		detection_field_fixture.dispose();
 		
 		Vector2 initial_position = Maze.getRandomFreePosition();
 		body.setTransform(initial_position.x, initial_position.y, 0f);
 		
-		/*Lights*/
-		aura = new Aura(body, Color.PURPLE, 1f);
-		setRage(false);
+		aura = new Aura(body, Color.WHITE, 0f);
+		
+		isNearOfThePlayer(false);
+		setState(states.normal);
+		updatePath();
 		
 	}
 	
-	public void setRage(boolean rage) { 
-
-		this.rage = rage;
-	
-			if (rage) { 
-				
-				aura.setActive(true);
-				timer = System.currentTimeMillis() + 3000;
-				speed = 1.2f;
+	public void setState(states s) {
 		
-			} else {
+		state = s;
+		
+		switch (state) {
+		
+			case normal : {
 				
 				aura.setActive(false);
-				speed = 0.4f;
+				path = null;
+				speed = 0.2f;
+				break;
 				
 			}
-		
-		current_target = updatePath();
-		
+			
+			case hunting : {
+				
+				aura.setActive(true);
+				aura.setColor(Color.RED);
+				path = null;
+				speed = 1f;
+				break;
+				
+			}
+			
+			case lost : {
+				
+				aura.setColor(Color.WHITE);
+				speed = 0;
+				break;
+				
+			}
+		}	
 	}
 
-	public long getTimer() { return timer; };
+	private void updatePath() {
 
-	@Override
-	protected Vector2 updatePath() {
-
-		if (!rage) path = Maze.getRandomPath(body.getPosition());
-		else path = Maze.findShortestPath(body.getPosition(), Maze.player.getPosition());
+		if (state == states.hunting) path = Maze.findShortestPath(body.getPosition(), Player.getInstance().getPosition());
+		else path = Maze.getRandomPath(body.getPosition());
 		
-		return path.poll();
+		if (path != null) current_target = path.poll();
+		else current_target = null;
 		
 	}
 	
 	@Override
-	public void dispose() { aura.dispose(); }
-	
-	@Override
-	protected void update() {
+	public void update() {
 		
-		if (GameScreen.ray_handler.pointAtLight(getPosition().x, getPosition().y)) {
-
-			if (timer == 0) timer = System.currentTimeMillis() + 3000;
-			else if (System.currentTimeMillis() > timer);
+		if (state == states.normal) {
+			
+			if (near_of_the_player) setState(states.hunting);
+				
+		}
+		
+		if (path == null) updatePath();
+		else if (body.getPosition().x > current_target.x + 0.30f && body.getPosition().x < current_target.x + 0.70f && body.getPosition().y > current_target.y + 0.30f && body.getPosition().y < current_target.y + 0.70f) {
+			
+			current_target = path.poll();
+			if (current_target  == null) updatePath();
 			
 		}
 		
-		super.update();
+		if (current_target != null) direction = MathExtension.getAngle(getPosition().scl(Constants.PPM), new Vector2((current_target.x + 0.5f) * Constants.PPM, (current_target.y + 0.5f) * Constants.PPM));
+		
+		move();
 
-		double absolute_value = Math.abs(direction * Constants.TO_DEGREE);
-		
-		if (absolute_value > 45) {
-			
-			if (absolute_value > 135) animation = Assets.parasite_left;
-			else	if (direction > 0) animation = Assets.parasite_up;
-					else animation = Assets.parasite_down;
-			
-		} else animation = Assets.parasite_right;
-		
-		
 	}
+	
+	@Override
+	public void render() {
+		
+		final float half_sprite = Constants.SPRITE_SIZE / 2;
+		
+		GameScreen.batch.draw(	Assets.parasite.getKeyFrame(GameScreen.state_time),
+								getPosition().x * Constants.PPM - half_sprite, getPosition().y * Constants.PPM - half_sprite,
+								half_sprite, half_sprite, Constants.PPM, Constants.PPM, 1f, 1f, (float)(direction * Constants.TO_DEGREE), false);
+
+	}
+	
+	public void setPosition(Vector2 position) { body.setTransform(position.x, position.y, 0f);}
+	
+	public void isNearOfThePlayer(boolean near) { near_of_the_player = near;}
 
 }

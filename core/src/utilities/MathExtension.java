@@ -1,24 +1,19 @@
 package utilities;
 
-import com.badlogic.gdx.math.Vector3;
-
-import screens.GameScreen;
+import com.badlogic.gdx.math.Vector2;
 
 public final class MathExtension {
 	
 	private MathExtension() {}
 	
-	public static double getAngle(float x1, float y1, float x2, float y2, boolean unproject) {
-		
-		Vector3 v = new Vector3(x2, y2, 0);
-		if (unproject) GameScreen.game_cam.unproject(v);
+	public static double getAngle(Vector2 v1, Vector2 v2) { return Math.atan2(v2.y - v1.y , v2.x - v1.x); }
 	
-		double adj, angle, opp;
-		opp = v.y - y1;
-		adj = v.x - x1;	
-		angle = Math.atan2(opp , adj);
+	public static double getDistance(Vector2 v1, Vector2 v2) {
 		
-		return angle;
+		double a = Math.abs(v2.x - v1.x);
+		double b = Math.abs(v2.y - v1.y);
+		
+		return Math.sqrt(a * a + b * b);
 		
 	}
 

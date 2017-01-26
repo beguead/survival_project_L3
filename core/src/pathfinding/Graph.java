@@ -74,7 +74,7 @@ public class Graph {
 		
 	}
 	
-	public ConcurrentLinkedQueue<Vector2> findShortestPath(int start_key, int end_key) {
+	public ConcurrentLinkedQueue<Vector2> findShortestPath(int start_key, int end_key) throws CannotFindPathException {
 		
 		initiationForResearsh(start_key);
 		
@@ -100,7 +100,7 @@ public class Graph {
 				} 
 			} while (it.hasNext() && low_height != 0);
 
-			if (current_key == -1) return findShortestPath(start_key, getRandomKey());
+			if (current_key == -1) throw new CannotFindPathException();
 			
 			nodes.get(current_key).checked = true;
 
@@ -119,14 +119,19 @@ public class Graph {
 		LinkedList<Vector2> inverted_path = new LinkedList<Vector2>();
 		do {
 			
-			inverted_path.add(new Vector2(current_key / Constants.MAP_HEIGHT , current_key % Constants.MAP_HEIGHT));
+			inverted_path.add(new Vector2(current_key / Constants.MAP_HEIGHT, current_key % Constants.MAP_HEIGHT));
 
 			current_key = nodes.get(current_key).predecessor;
 			
 		} while (current_key != -1);
 		
 		ConcurrentLinkedQueue<Vector2> path = new ConcurrentLinkedQueue<Vector2>();
-		for (int i = inverted_path.size() - 1 ; i >= 0 ; --i) path.add(inverted_path.get(i));
+		for (int i = inverted_path.size() - 1 ; i >= 0 ; --i) {
+			
+			if (	i == 0 || i == inverted_path.size() - 1 ||
+					!((inverted_path.get(i - 1).x == inverted_path.get(i).x && inverted_path.get(i).x == inverted_path.get(i + 1).x) ||
+					(inverted_path.get(i - 1).y == inverted_path.get(i).y && inverted_path.get(i).y == inverted_path.get(i + 1).y))) path.add(inverted_path.get(i));
+		}
 		
 		return path;
 		

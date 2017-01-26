@@ -5,7 +5,7 @@ public final class Constants {
 	private Constants() {} //Static class
 
 	/*Application*/
-	public static final String GAME_TITLE = "My first game";
+	public static final String GAME_TITLE = "Halo Delta";
     public static final int APP_WIDTH = 1200;
     public static final int APP_HEIGHT = 800;
     
@@ -23,14 +23,17 @@ public final class Constants {
     public static final int MAP_HEIGHT = 25;
     
     /*Lights*/
-    public static final float WHITE_CORE_CONE_DEGREE = 4f;
-    public static final float WHITE_CORE_DISTANCE = 4f;
+    public static final float WHITE_CORE_CONE_DEGREE = 15f;
+    public static final float WHITE_CORE_DISTANCE = 3f;
+    
+    public static final float BLUE_CORE_CONE_DEGREE = 10f;
+    public static final float BLUE_CORE_DISTANCE = 2f;
     
     public static final float YELLOW_CORE_CONE_DEGREE = 1f;
-    public static final float YELLOW_CORE_DISTANCE = 20f;
+    public static final float YELLOW_CORE_DISTANCE = 30f;
     
-    public static final float GREEN_CORE_CONE_DEGREE = 30f;
-    public static final float GREEN_CORE_DISTANCE = 3f;
+    public static final float GREEN_CORE_CONE_DEGREE = 45f;
+    public static final float GREEN_CORE_DISTANCE = 2f;
     
     /*Filtering bits*/
     public static final short LIGHT_FILTER = 1; 	//0b1

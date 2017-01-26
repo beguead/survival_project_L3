@@ -11,6 +11,7 @@ import items.Core;
 import items.GreenCore;
 import items.YellowCore;
 import lights.Aura;
+import main.MainGame;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
@@ -18,14 +19,17 @@ import utilities.Constants;
 
 public class Player extends Character {
 	
-	public boolean moving;
+	//Singleton
+	private static final Player INSTANCE = new Player();
 	
-	private Aura aura;
+	public boolean moving;
+
 	private Core core;
-	private ConeLight cone_light;
+	private ConeLight cone_light1;
+	private ConeLight cone_light2;
 	private Sprite sprite;
 	
-	public Player() {
+	private Player() {
 		super();
 		sprite = Assets.player_base;
 		
@@ -38,42 +42,44 @@ public class Player extends Character {
 		
 		/*Lights*/
 		aura = new Aura(body, Color.WHITE, 0.3f);
-		cone_light = new ConeLight(GameScreen.ray_handler, 100, Color.WHITE, 0f, body.getPosition().x, body.getPosition().y, 0f, 0f);
-		cone_light.setSoftnessLength(0.1f);
+		cone_light1 = new ConeLight(GameScreen.ray_handler, 100, Color.WHITE, 0f, body.getPosition().x, body.getPosition().y, 0f, 0f);
+		cone_light1.setSoftnessLength(0.1f);
 		
 	}
 	
-	@Override
 	public void dispose() {
 		
 		aura.dispose();
-		cone_light.dispose();
+		cone_light1.dispose();
 		
 	}
 	
 	private void dropCore() {
 		
-		core.is_on_the_map = true;
-		core.setPosition(getPosition());
+		core.setActive(true);
 		core = null;
 		
 	}
 	
 	public void setCore(Core core) {
 		
-		Color c;
-		
 		if (this.core != null) dropCore();
 		
-		core.is_on_the_map = false;
+		core.setActive(false);
 		this.core = core;
 		
+		Color c;
 		if (core instanceof BlueCore) {
 			
-			c = Color.CYAN;
+			c = Color.ROYAL;
 			sprite = Assets.player_blue;
 			
+			cone_light2 = new ConeLight(GameScreen.ray_handler, 100, c, core.getDistance(), body.getPosition().x, body.getPosition().y, (float)(direction * Constants.TO_DEGREE) + 180, core.getConeDegree());
+			cone_light2.setSoftnessLength(0.1f);
+			
 		} else {
+			
+			cone_light2 = null;
 			
 			if (core instanceof GreenCore) {
 				
@@ -97,9 +103,9 @@ public class Player extends Character {
 		}
 		
 		aura.setColor(c);
-		cone_light.setColor(c);
-		cone_light.setDistance(core.getDistance());
-		cone_light.setConeDegree(core.getConeDegree());
+		cone_light1.setColor(c);
+		cone_light1.setDistance(core.getDistance());
+		cone_light1.setConeDegree(core.getConeDegree());
 	    sprite.setRotation((float)(direction * Constants.TO_DEGREE));
 		
 	}
@@ -109,22 +115,25 @@ public class Player extends Character {
 		direction = angle;
 		
 		float angle_in_degree = (float)(angle * Constants.TO_DEGREE);
-		cone_light.setDirection(angle_in_degree);
-		if (core instanceof BlueCore) ((BlueCore)core).setDirection(angle_in_degree + 180);
+		cone_light1.setDirection(angle_in_degree);
+		if (cone_light2 != null) cone_light2.setDirection(angle_in_degree + 180);
 	    sprite.setRotation(angle_in_degree);
 		
 	}
 
-	protected void update() {
+	public void update() {
 		
 		if (moving) move();
 		else body.setLinearVelocity(0f, 0f);
-		cone_light.setPosition(getPosition());
+		cone_light1.setPosition(getPosition());
+		if (cone_light2 != null) cone_light2.setPosition(getPosition());
 		core.setPosition(getPosition());
 	    sprite.setPosition(getPosition().x * Constants.PPM - Constants.SPRITE_SIZE / 2, getPosition().y * Constants.PPM - Constants.SPRITE_SIZE / 2);
 		
 	}
 	
-	protected void render() { sprite.draw(GameScreen.batch); }
+	public void render() { sprite.draw(GameScreen.batch); }
+	
+    public static Player getInstance() { return INSTANCE; }
 	
 }

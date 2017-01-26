@@ -1,13 +1,12 @@
 package dungeon;
 
-import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import utilities.BodyCreator;
 import utilities.Constants;
 
-public class Wall extends MapObject {
+public class Wall{
 	
 	public Wall(float x, float y) {
 			

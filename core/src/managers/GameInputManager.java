@@ -1,6 +1,10 @@
 package managers;
 
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+
+import characters.Player;
 import dungeon.Maze;
 
 import com.badlogic.gdx.Input;
@@ -11,7 +15,9 @@ import utilities.Assets;
 import utilities.Constants;
 import utilities.MathExtension;
 
-public class GameInputManager implements InputProcessor {
+public final class GameInputManager implements InputProcessor {
+	
+	private static CallBack callback = new CallBack();
 	
 	public boolean keyDown(int keycode) {
 			
@@ -35,12 +41,20 @@ public class GameInputManager implements InputProcessor {
 
 		if (button == Input.Buttons.LEFT) {
 			
-			Maze.player.moving = true;
-			Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().x * Constants.PPM, Maze.player.getPosition().y * Constants.PPM, screenX, screenY, true));
+			Player.getInstance().moving = true;
+			Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+			Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 
 		}
 		
-		if (button == Input.Buttons.RIGHT && Maze.core_near_the_player != null) { Maze.player.setCore(Maze.core_near_the_player); }
+		if (button == Input.Buttons.MIDDLE && Maze.core_near_the_player != null) Player.getInstance().setCore(Maze.core_near_the_player);
+		
+		if (button == Input.Buttons.RIGHT) {
+			
+			Vector3 v = (GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0))).scl(1 / Constants.PPM);
+			GameScreen.world.QueryAABB(callback, v.x, v.y, v.x, v.y);
+			
+		}
 		
 		return false;
 	}
@@ -49,8 +63,9 @@ public class GameInputManager implements InputProcessor {
 
 		if (button == Input.Buttons.LEFT) {
 			
-			Maze.player.moving = false;
-			Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().x * Constants.PPM, Maze.player.getPosition().y * Constants.PPM, screenX, screenY, true));
+			Player.getInstance().moving = false;
+			Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+			Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 			
 		}
 		
@@ -59,7 +74,8 @@ public class GameInputManager implements InputProcessor {
 
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		
-		Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().x * Constants.PPM, Maze.player.getPosition().y * Constants.PPM, screenX, screenY, true));
+		Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+		Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 		
 		return false;
 	}
@@ -67,7 +83,8 @@ public class GameInputManager implements InputProcessor {
 
 	public boolean mouseMoved(int screenX, int screenY) {
 		
-		Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().x * Constants.PPM, Maze.player.getPosition().y * Constants.PPM, screenX, screenY, true));
+		Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+		Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 			
 		return false;
 		

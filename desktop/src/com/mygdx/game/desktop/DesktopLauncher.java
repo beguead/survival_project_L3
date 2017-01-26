@@ -18,7 +18,7 @@ public class DesktopLauncher {
 		cfg.resizable = false;
 		//cfg.fullscreen = true;
 		
-		new LwjglApplication(new MainGame(), cfg);
+		new LwjglApplication(MainGame.getInstance(), cfg);
 		
 	}
 	
