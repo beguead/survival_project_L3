@@ -19,11 +19,15 @@ public final class GameInputManager implements InputProcessor {
 	
 	private static CallBack callback = new CallBack();
 	
+	private static final GameInputManager INSTANCE = new GameInputManager();
+	
+	private GameInputManager() {}
+	
 	public boolean keyDown(int keycode) {
 			
 		if (keycode == Keys.F1) GameScreen.debug_renderer = !GameScreen.debug_renderer;
 		if (keycode == Keys.ESCAPE) GameScreen.pause = !GameScreen.pause;
-
+		
 		return false;
 	}
 
@@ -41,13 +45,13 @@ public final class GameInputManager implements InputProcessor {
 
 		if (button == Input.Buttons.LEFT) {
 			
-			Player.getInstance().moving = true;
+			Maze.player.moving = true;
 			Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
-			Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
+			Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 
 		}
 		
-		if (button == Input.Buttons.MIDDLE && Maze.core_near_the_player != null) Player.getInstance().setCore(Maze.core_near_the_player);
+		if (button == Input.Buttons.MIDDLE && Maze.core_near_the_player != null) Maze.player.setCore(Maze.core_near_the_player);
 		
 		if (button == Input.Buttons.RIGHT) {
 			
@@ -63,9 +67,9 @@ public final class GameInputManager implements InputProcessor {
 
 		if (button == Input.Buttons.LEFT) {
 			
-			Player.getInstance().moving = false;
+			Maze.player.moving = false;
 			Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
-			Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
+			Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 			
 		}
 		
@@ -75,7 +79,7 @@ public final class GameInputManager implements InputProcessor {
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		
 		Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
-		Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
+		Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 		
 		return false;
 	}
@@ -84,7 +88,7 @@ public final class GameInputManager implements InputProcessor {
 	public boolean mouseMoved(int screenX, int screenY) {
 		
 		Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
-		Player.getInstance().setDirection(MathExtension.getAngle(Player.getInstance().getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
+		Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 			
 		return false;
 		
@@ -94,22 +98,24 @@ public final class GameInputManager implements InputProcessor {
 		
 		if (amount == 1) {	
 		
-			if (Assets.virtual_width < Constants.APP_WIDTH && Assets.virtual_height < Constants.APP_HEIGHT) {
+			if (Assets.virtual_width < Constants.APP_WIDTH * 2 && Assets.virtual_height < Constants.APP_HEIGHT * 2) {
 			
-				Assets.virtual_width += 15;
-				Assets.virtual_height += 15;
+				Assets.virtual_width += 10;
+				Assets.virtual_height += 10;
 			
 				GameScreen.game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
 				GameScreen.game_cam.update();
 			
+			} else {
+
+				Assets.virtual_width = Constants.APP_WIDTH * 2;
+				Assets.virtual_height = Constants.APP_HEIGHT * 2;
+				
 			}
 		
 		} else {
-	
-			final int min_width = (int) (Constants.APP_WIDTH / 2.5);
-			final int min_height = (int) (Constants.APP_HEIGHT / 2.5);
 		
-			if (Assets.virtual_width > min_width && Assets.virtual_height > min_height) {
+			if (Assets.virtual_width > 1200 && Assets.virtual_height > 800) {
 		
 				Assets.virtual_width -= 10;
 				Assets.virtual_height -= 10;
@@ -119,8 +125,8 @@ public final class GameInputManager implements InputProcessor {
 		
 			} else {
 
-				Assets.virtual_width = min_width;
-				Assets.virtual_height = min_height;
+				Assets.virtual_width = 1200;
+				Assets.virtual_height = 800;
 				
 			}
 		
@@ -129,4 +135,7 @@ public final class GameInputManager implements InputProcessor {
 		return false;
 		
 	}
+	
+	public static GameInputManager getInstance() { return INSTANCE; }
+	
 }

@@ -7,19 +7,15 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 
 import box2dLight.Light;
 import box2dLight.RayHandler;
-import characters.Player;
 import dungeon.Maze;
-import dungeon.Portal;
-import items.Core;
 import main.MainGame;
-import managers.GameInputManager;
 import managers.ContactManager;
+import managers.GameInputManager;
 import utilities.Assets;
 import utilities.Constants;
 
@@ -28,7 +24,6 @@ public class GameScreen implements Screen {
 	public static Maze dungeon;
 	public static OrthographicCamera game_cam;
 	public static RayHandler ray_handler;
-	public static SpriteBatch batch;
 	public static World world;
 	public static float state_time;
 	
@@ -39,8 +34,6 @@ public class GameScreen implements Screen {
 	public static boolean debug_renderer;
 
 	public GameScreen() {
-		
-    	Gdx.input.setInputProcessor(new GameInputManager());
     	
     	game_cam = new OrthographicCamera();
     	game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
@@ -53,9 +46,11 @@ public class GameScreen implements Screen {
 	public void show() {
 		
 		resume();
+		
+	   	Gdx.input.setInputProcessor(GameInputManager.getInstance());
+		
     	world = new World(new Vector2(0f, 0f), true);
     	world.setContactListener(new ContactManager());
-		batch = new SpriteBatch();
 		b2dr = new Box2DDebugRenderer();
     	ray_handler = new RayHandler(world);
     	ray_handler.setAmbientLight(0);
@@ -72,18 +67,18 @@ public class GameScreen implements Screen {
 				
 				state_time += delta;
 				
-				debugmatrix = batch.getProjectionMatrix().cpy().scale(Constants.PPM, Constants.PPM, 0);
+				debugmatrix = MainGame.batch.getProjectionMatrix().cpy().scale(Constants.PPM, Constants.PPM, 0);
 			
 				world.step(1 / 60f, 6, 2);
 				gameCamUpdate();
 		
 				ray_handler.setCombinedMatrix(debugmatrix);
-				batch.setProjectionMatrix(game_cam.combined);
+				MainGame.batch.setProjectionMatrix(game_cam.combined);
 		
 				dungeon.update();
-				batch.begin();
+				MainGame.batch.begin();
 				dungeon.render();
-				batch.end();
+				MainGame.batch.end();
 		
 				ray_handler.updateAndRender();
 		
@@ -105,7 +100,7 @@ public class GameScreen implements Screen {
 		
 		Vector3 camPosition = game_cam.position;
 		
-		float player_position = Player.getInstance().getPosition().x * Constants.PPM;
+		float player_position = Maze.player.getPosition().x * Constants.PPM;
 		float half_cam = Assets.virtual_width / 2;
 		
 		if (player_position - half_cam <= 0) camPosition.x += (half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
@@ -114,7 +109,7 @@ public class GameScreen implements Screen {
 
 					else camPosition.x += (player_position - game_cam.position.x) * Constants.CAMERA_LERP;
 		
-		player_position = Player.getInstance().getPosition().y * Constants.PPM;
+		player_position = Maze.player.getPosition().y * Constants.PPM;
 		half_cam = Assets.virtual_height / 2;
 		
 		if (player_position - half_cam <= 0) camPosition.y += (half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
@@ -142,11 +137,15 @@ public class GameScreen implements Screen {
 		
 	}
 
-	public void hide() {Assets.game_background_music.stop(); }
+	public void hide() { 
+		
+		Gdx.input.setInputProcessor(null);
+		Assets.game_background_music.stop();
+		
+	}
 
 	public void dispose() {
 		
-		batch.dispose();
 		dungeon.dispose();
 		b2dr.dispose();
 		ray_handler.dispose();

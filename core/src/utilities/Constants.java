@@ -10,15 +10,15 @@ public final class Constants {
     public static final int APP_HEIGHT = 800;
     
     /*Conversion*/
-    public static final float PPM = 32f;
+    public static final float PPM = 128f;
     public static final double TO_DEGREE = 180d / Math.PI;
 
     /*Camera*/
     public static final float CAMERA_LERP = 0.05f;
     
     /*Map*/
-    public static final int TILE_WIDTH = 32;
-    public static final int TILE_HEIGHT = 32;
+    public static final int TILE_WIDTH = 128;
+    public static final int TILE_HEIGHT = 128;
     public static final int MAP_WIDTH = 25;
     public static final int MAP_HEIGHT = 25;
     
@@ -46,6 +46,6 @@ public final class Constants {
     
     public static final float FRAME_DURATION = 0.2f;
     
-    public static final int SPRITE_SIZE = 32;
+    public static final int SPRITE_SIZE = 128;
     
 }

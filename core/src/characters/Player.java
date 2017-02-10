@@ -19,17 +19,13 @@ import utilities.Constants;
 
 public class Player extends Character {
 	
-	//Singleton
-	private static final Player INSTANCE = new Player();
-	
 	public boolean moving;
 
 	private Core core;
 	private ConeLight cone_light1;
-	private ConeLight cone_light2;
 	private Sprite sprite;
 	
-	private Player() {
+	public Player() {
 		super();
 		sprite = Assets.player_base;
 		
@@ -37,11 +33,11 @@ public class Player extends Character {
 		speed = 1f;
 		moving = false;
 		
-		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody, Maze.getRandomFreePosition(), 0.2f, false, Constants.PLAYER_FILTER,
+		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody, Maze.getRandomFreePosition(), sprite.getRegionWidth() / (2 * Constants.PPM), false, Constants.PLAYER_FILTER,
 												(short)(Constants.WALL_FILTER | Constants.ITEM_FILTER | Constants.SENSOR_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER) , this	);
 		
 		/*Lights*/
-		aura = new Aura(body, Color.WHITE, 0.3f);
+		aura = new Aura(body, Color.WHITE, 0.2f);
 		cone_light1 = new ConeLight(GameScreen.ray_handler, 100, Color.WHITE, 0f, body.getPosition().x, body.getPosition().y, 0f, 0f);
 		cone_light1.setSoftnessLength(0.1f);
 		
@@ -56,7 +52,10 @@ public class Player extends Character {
 	
 	private void dropCore() {
 		
-		core.setActive(true);
+		if (core instanceof BlueCore)
+			((BlueCore)(core)).setMirrorLightActive(false);
+		
+		core.setBodyActive(true);
 		core = null;
 		
 	}
@@ -65,45 +64,22 @@ public class Player extends Character {
 		
 		if (this.core != null) dropCore();
 		
-		core.setActive(false);
+		core.setBodyActive(false);
 		this.core = core;
 		
-		Color c;
 		if (core instanceof BlueCore) {
 			
-			c = Color.ROYAL;
+			BlueCore bc = ((BlueCore)(core));
 			sprite = Assets.player_blue;
+			bc.setMirrorLightActive(true);
+			bc.majMirrorLightDirection((float)(direction * Constants.TO_DEGREE));
 			
-			cone_light2 = new ConeLight(GameScreen.ray_handler, 100, c, core.getDistance(), body.getPosition().x, body.getPosition().y, (float)(direction * Constants.TO_DEGREE) + 180, core.getConeDegree());
-			cone_light2.setSoftnessLength(0.1f);
-			
-		} else {
-			
-			cone_light2 = null;
-			
-			if (core instanceof GreenCore) {
-				
-				c = Color.GREEN;
-				sprite = Assets.player_green;
-			
-			} else {
-						
-				if (core instanceof YellowCore) {
-						
-					c = Color.YELLOW;
-					sprite = Assets.player_yellow;
-							
-				} else { 
-						
-					c = Color.WHITE;
-					sprite = Assets.player_base;	
-					
-				}
-			}
-		}
+		} else	if (core instanceof GreenCore) sprite = Assets.player_green;
+				else	if (core instanceof YellowCore) sprite = Assets.player_yellow;
+						else  sprite = Assets.player_base;	
 		
-		aura.setColor(c);
-		cone_light1.setColor(c);
+		aura.setColor(core.getColor());
+		cone_light1.setColor(core.getColor());
 		cone_light1.setDistance(core.getDistance());
 		cone_light1.setConeDegree(core.getConeDegree());
 	    sprite.setRotation((float)(direction * Constants.TO_DEGREE));
@@ -116,7 +92,7 @@ public class Player extends Character {
 		
 		float angle_in_degree = (float)(angle * Constants.TO_DEGREE);
 		cone_light1.setDirection(angle_in_degree);
-		if (cone_light2 != null) cone_light2.setDirection(angle_in_degree + 180);
+		if (core instanceof BlueCore) ((BlueCore)(core)).majMirrorLightDirection(angle_in_degree);
 	    sprite.setRotation(angle_in_degree);
 		
 	}
@@ -126,14 +102,11 @@ public class Player extends Character {
 		if (moving) move();
 		else body.setLinearVelocity(0f, 0f);
 		cone_light1.setPosition(getPosition());
-		if (cone_light2 != null) cone_light2.setPosition(getPosition());
 		core.setPosition(getPosition());
-	    sprite.setPosition(getPosition().x * Constants.PPM - Constants.SPRITE_SIZE / 2, getPosition().y * Constants.PPM - Constants.SPRITE_SIZE / 2);
+	    sprite.setPosition(getPosition().x * Constants.PPM - sprite.getWidth() * 0.5f, getPosition().y * Constants.PPM - sprite.getHeight() * 0.5f);
 		
 	}
 	
-	public void render() { sprite.draw(GameScreen.batch); }
-	
-    public static Player getInstance() { return INSTANCE; }
+	public void render() { sprite.draw(MainGame.batch); }
 	
 }

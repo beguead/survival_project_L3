@@ -2,6 +2,7 @@ package main;
 
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import screens.GameScreen;
 import screens.MainMenuScreen;
@@ -17,13 +18,17 @@ public class MainGame extends Game {
 	//Screens
 	public static MainMenuScreen m2Screen;
     public static GameScreen gScreen ;
+    public static SpriteBatch batch;
 
     public void create() {
     	
+      	batch = new SpriteBatch();
+    	
     	Assets.load();
+    	
     	m2Screen = new MainMenuScreen();
     	gScreen = new GameScreen();
-    	setScreen(gScreen);  
+    	setScreen(m2Screen);  
             
     }
     

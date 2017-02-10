@@ -13,6 +13,7 @@ public class CallBack implements QueryCallback {
 			
 			((LightBarrier)(fixture.getUserData())).inverseState();
 			return false;
+			
 		}
 		
 		return true;

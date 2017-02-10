@@ -8,51 +8,50 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.utils.Disposable;
 
-import interfaces.IUpdateAndRender;
 import lights.Aura;
+import main.MainGame;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
 import utilities.Constants;
 
-public class LightBarrier extends MapObject implements Disposable, IUpdateAndRender {
+public class LightBarrier extends MapObject implements Disposable {
 	
 	private Aura aura;
 	private Body barrier;
 	private Body base;
-	private boolean horizontal;
-	private Sprite s = new Sprite(Assets.light_barrier_base);
+	private boolean vertical;
+	private final Sprite s = new Sprite(Assets.light_barrier_base);
 	
-	public LightBarrier(float x, float y, boolean horizontal) {
+	public LightBarrier(float x, float y, boolean vertical) {
 		
 		float width, height;
 		
-		this.horizontal = horizontal;
+		this.vertical = vertical;
 		
-		s.setPosition(x * Constants.PPM , y * Constants.PPM);
+		s.setPosition(x * Constants.PPM, y * Constants.PPM);
 		
-		base = BodyCreator.createCircleBody(BodyDef.BodyType.StaticBody, new Vector2(x + 0.5f, y + 0.5f), 0.5f, true, (short)(0), (short)(0) , this);
+		base = BodyCreator.createCircleBody(BodyDef.BodyType.StaticBody, new Vector2(x + 0.5f, y + 0.5f), s.getWidth() / (2 * Constants.PPM), true, (short)(0), (short)(0) , this);
 		
-		if (horizontal) {
-			
-			s.setRotation(90f);
-			
-			width = Constants.TILE_WIDTH / (2 * Constants.PPM);
-			height = Constants.TILE_WIDTH / (4 * Constants.PPM);
-			y += 0.25f;
-			
-		} else {
+		if (vertical) {
 			
 			width = Constants.TILE_WIDTH / (4 * Constants.PPM);
 			height = Constants.TILE_WIDTH / (2 * Constants.PPM);
 			x += 0.25f;
+			
+		} else {
+			
+			s.setRotation(90f);
+			width = Constants.TILE_WIDTH / (2 * Constants.PPM);
+			height = Constants.TILE_WIDTH / (4 * Constants.PPM);
+			y += 0.25f;
 			
 		}
 		
 		barrier = BodyCreator.createBoxBody(	BodyDef.BodyType.StaticBody, new Vector2(x, y), width, height, false,
 												Constants.WALL_FILTER, (short)(Constants.PLAYER_FILTER | Constants.ENEMY_FILTER), this	);
 		
-		aura = new Aura(base, Color.FOREST, 0.5f);
+		aura = new Aura(base, Color.CYAN, 0.7f);
 		aura.setActive(false);
 		barrier.setActive(false);
 		
@@ -65,38 +64,31 @@ public class LightBarrier extends MapObject implements Disposable, IUpdateAndRen
 	
 	}
 
-	@Override
-	public void update() {
-		
-	}
 
-	@Override
-	public void render() {
-		
-		s.draw(GameScreen.batch);
+	public void renderBase() { s.draw(MainGame.batch); }
+	
+	public void renderBarrier() {
 		
 		if (barrier.isActive()) {
 			
-			float x, y, rotation;
-			if (horizontal) {
+			float rotation, width, height;
+			
+			if (vertical) {
 				
 				rotation = 90f;
-				x = barrier.getPosition().x;
-				y = barrier.getPosition().y - 0.25f;
+				width = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth();
+				height = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight();
 				
-			}
-			else {
+			} else {
 				
 				rotation = 0f;
-				x = barrier.getPosition().x - 0.25f;
-				y = barrier.getPosition().y;
+				height = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth();
+				width = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight();
 				
 			}
 			
-			final float half_sprite = Constants.SPRITE_SIZE / 2;
-			
-			GameScreen.batch.draw(	Assets.barrier_standing.getKeyFrame(GameScreen.state_time), x * Constants.PPM, y * Constants.PPM,
-									half_sprite, half_sprite, Constants.PPM, Constants.PPM, 1f, 1f, rotation, false);
+			MainGame.batch.draw(	Assets.light_barrier.getKeyFrame(GameScreen.state_time), base.getPosition().x * Constants.PPM - width / 2, base.getPosition().y  * Constants.PPM - height / 2,
+									width, height);
 			
 		}
 		

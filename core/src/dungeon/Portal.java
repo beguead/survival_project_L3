@@ -5,6 +5,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import lights.Aura;
+import main.MainGame;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
@@ -27,7 +28,7 @@ public class Portal {
 	public void render() {
 			
 			aura.setDistance(0.5f * (Assets.portal_standing.getKeyFrameIndex(GameScreen.state_time) % 2 + 1));	
-			GameScreen.batch.draw(	Assets.portal_standing.getKeyFrame(GameScreen.state_time),
+			MainGame.batch.draw(	Assets.portal_standing.getKeyFrame(GameScreen.state_time),
 									body.getPosition().x * Constants.PPM - Constants.SPRITE_SIZE / 2,
 									body.getPosition().y * Constants.PPM - Constants.SPRITE_SIZE / 2 );
 			

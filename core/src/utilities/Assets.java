@@ -12,8 +12,8 @@ public final class Assets {
 	private Assets() {}
 	
 	/*Camera*/
-    public static int virtual_width = (int) (Constants.APP_WIDTH / 2.5);
-    public static int virtual_height = (int) (Constants.APP_HEIGHT / 2.5);
+    public static int virtual_width = 1200;
+    public static int virtual_height = 800;
 	
    public static final Music main_menu_music = Gdx.audio.newMusic(Gdx.files.internal("sounds/halo5_main_menu_theme.mp3"));
    public static final Music game_background_music = Gdx.audio.newMusic(Gdx.files.internal("sounds/flood_theme.mp3"));
@@ -43,7 +43,7 @@ public final class Assets {
 	
 		/*Light barrier*/
 	public static Animation barrier_closing;
-	public static Animation barrier_standing;
+	public static Animation light_barrier;
 	public static Animation barrier_opening;
 	
 	public static void load() {
@@ -54,8 +54,8 @@ public final class Assets {
 		game_background_music.setLooping(true);
 		game_background_music.setVolume(0.2f);
 		
-		TextureRegion [][] split = TextureRegion.split(new Texture(Gdx.files.internal("characters/parasite.png")), 32, 32);
-		parasite = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 3, 0));
+		TextureRegion [][] split = TextureRegion.split(new Texture(Gdx.files.internal("characters/parasite.png")), 64, 64);
+		parasite = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 4, 0));
 		parasite.setPlayMode(Animation.PlayMode.LOOP);
 		
 		split = TextureRegion.split(new Texture(Gdx.files.internal("items/particle.png")), 32, 32);
@@ -68,12 +68,9 @@ public final class Assets {
 		portal_standing.setPlayMode(Animation.PlayMode.LOOP);
 		portal_closing = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 7, 2));
 		
-		split = TextureRegion.split(new Texture(Gdx.files.internal("environment/light_barrier/light_barrier.png")), 32, 32);
-		barrier_closing = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 2, 0));
-		barrier_closing.setPlayMode(Animation.PlayMode.REVERSED);
-		barrier_standing = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 4, 1));
-		barrier_standing.setPlayMode(Animation.PlayMode.LOOP);
-		barrier_opening = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 2, 0));
+		split = TextureRegion.split(new Texture(Gdx.files.internal("environment/light_barrier/light_barrier.png")), 32, 128);
+		light_barrier = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 32, 0));
+		light_barrier.setPlayMode(Animation.PlayMode.LOOP);
 		
 	}
 	
