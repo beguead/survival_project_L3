@@ -120,7 +120,6 @@ public class Graph {
 		do {
 			
 			inverted_path.add(new Vector2(current_key / Constants.MAP_HEIGHT, current_key % Constants.MAP_HEIGHT));
-
 			current_key = nodes.get(current_key).predecessor;
 			
 		} while (current_key != -1);

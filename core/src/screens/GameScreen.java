@@ -3,7 +3,6 @@ package screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -21,8 +20,9 @@ import utilities.Constants;
 
 public class GameScreen implements Screen {
 	
+	private static GameScreen INSTANCE = new GameScreen();
+	
 	public static Maze dungeon;
-	public static OrthographicCamera game_cam;
 	public static RayHandler ray_handler;
 	public static World world;
 	public static float state_time;
@@ -33,17 +33,17 @@ public class GameScreen implements Screen {
 	public static boolean pause, end;
 	public static boolean debug_renderer;
 
-	public GameScreen() {
-    	
-    	game_cam = new OrthographicCamera();
-    	game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
-		game_cam.update();
+	private GameScreen() {
     	
     	Light.setGlobalContactFilter(Constants.LIGHT_FILTER, (short)0, (short)(Constants.PLAYER_FILTER | Constants.WALL_FILTER | Constants.ENEMY_FILTER));
     	
-    }	
+    }
+	
+	public static GameScreen getInstance() { return INSTANCE; }
 	
 	public void show() {
+		
+		MainGame.camera.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
 		
 		resume();
 		
@@ -73,7 +73,7 @@ public class GameScreen implements Screen {
 				gameCamUpdate();
 		
 				ray_handler.setCombinedMatrix(debugmatrix);
-				MainGame.batch.setProjectionMatrix(game_cam.combined);
+				MainGame.batch.setProjectionMatrix(MainGame.camera.combined);
 		
 				dungeon.update();
 				MainGame.batch.begin();
@@ -87,7 +87,7 @@ public class GameScreen implements Screen {
 		if (end) {
 			
 			pause();
-			MainGame.getInstance().setScreen(MainGame.m2Screen);
+			MainGame.getInstance().setScreen(MainMenuScreen.getInstance());
 			dispose();
 			
 		}
@@ -98,28 +98,28 @@ public class GameScreen implements Screen {
 	
 	private void gameCamUpdate() {
 		
-		Vector3 camPosition = game_cam.position;
+		Vector3 camPosition = MainGame.camera.position;
 		
 		float player_position = Maze.player.getPosition().x * Constants.PPM;
 		float half_cam = Assets.virtual_width / 2;
 		
-		if (player_position - half_cam <= 0) camPosition.x += (half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
+		if (player_position - half_cam <= 0) camPosition.x += (half_cam - MainGame.camera.position.x) * Constants.CAMERA_LERP;
 			else	if (player_position + half_cam  >= Constants.MAP_WIDTH * Constants.TILE_WIDTH)
-						camPosition.x += (Constants.MAP_WIDTH * Constants.TILE_WIDTH - half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
+						camPosition.x += (Constants.MAP_WIDTH * Constants.TILE_WIDTH - half_cam - MainGame.camera.position.x) * Constants.CAMERA_LERP;
 
-					else camPosition.x += (player_position - game_cam.position.x) * Constants.CAMERA_LERP;
+					else camPosition.x += (player_position - MainGame.camera.position.x) * Constants.CAMERA_LERP;
 		
 		player_position = Maze.player.getPosition().y * Constants.PPM;
 		half_cam = Assets.virtual_height / 2;
 		
-		if (player_position - half_cam <= 0) camPosition.y += (half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
+		if (player_position - half_cam <= 0) camPosition.y += (half_cam - MainGame.camera.position.y) * Constants.CAMERA_LERP;
 			else	if (player_position + half_cam  >= Constants.MAP_HEIGHT * Constants.TILE_HEIGHT)
-						camPosition.y += (Constants.MAP_HEIGHT * Constants.TILE_HEIGHT - half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
+						camPosition.y += (Constants.MAP_HEIGHT * Constants.TILE_HEIGHT - half_cam - MainGame.camera.position.y) * Constants.CAMERA_LERP;
 		
-					else camPosition.y += (player_position - game_cam.position.y) * Constants.CAMERA_LERP;
+					else camPosition.y += (player_position - MainGame.camera.position.y) * Constants.CAMERA_LERP;
 		
-		game_cam.position.set(camPosition);
-		game_cam.update();
+		MainGame.camera.position.set(camPosition);
+		MainGame.camera.update();
 		
 	}
 

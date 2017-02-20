@@ -25,12 +25,13 @@ public abstract class Core implements IUpdateAndRender {
 	public Core() {
 		
 		if (this instanceof BlueCore) sprite = new Sprite(Assets.blue_core);
-		else	if (this instanceof GreenCore) sprite = new Sprite(Assets.green_core);
-				else 	if (this instanceof YellowCore) sprite = new Sprite(Assets.yellow_core);
-						else sprite = Assets.white_core;
+		else	if (this instanceof OrangeCore) sprite = new Sprite(Assets.orange_core);
+				else 	if (this instanceof PurpleCore) sprite = new Sprite(Assets.purple_core);
+						else 	if (this instanceof RedCore) sprite = new Sprite(Assets.red_core);
+								else sprite = Assets.cyan_core;
 		
-		body = BodyCreator.createCircleBody(BodyDef.BodyType.StaticBody, Maze.getRandomFreePosition(), sprite.getWidth() / (1.5f * Constants.PPM), true, Constants.ITEM_FILTER, Constants.PLAYER_FILTER , this);
-		aura = new Aura(body, getColor(), 0.2f);
+		body = BodyCreator.createCircleBody(BodyDef.BodyType.StaticBody, Maze.getRandomFreePosition(), sprite.getWidth() / Constants.PPM, true, Constants.ITEM_FILTER, Constants.PLAYER_FILTER , this);
+		aura = new Aura(body, getColor(), 0.3f);
 		aura.setActive(false);
 			
 	}

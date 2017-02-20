@@ -19,21 +19,24 @@ public final class Constants {
     /*Map*/
     public static final int TILE_WIDTH = 128;
     public static final int TILE_HEIGHT = 128;
-    public static final int MAP_WIDTH = 25;
-    public static final int MAP_HEIGHT = 25;
+    public static final int MAP_WIDTH = 13;
+    public static final int MAP_HEIGHT = 13;
     
     /*Lights*/
-    public static final float WHITE_CORE_CONE_DEGREE = 15f;
-    public static final float WHITE_CORE_DISTANCE = 3f;
+    public static final float CYAN_CORE_CONE_DEGREE = 5f;
+    public static final float CYAN_CORE_DISTANCE = 2.5f;
     
-    public static final float BLUE_CORE_CONE_DEGREE = 10f;
-    public static final float BLUE_CORE_DISTANCE = 2f;
+    public static final float BLUE_CORE_CONE_DEGREE = 5f;
+    public static final float BLUE_CORE_DISTANCE = 2.5f;
     
-    public static final float YELLOW_CORE_CONE_DEGREE = 1f;
-    public static final float YELLOW_CORE_DISTANCE = 30f;
+    public static final float PURPLE_CORE_CONE_DEGREE = 3f;
+    public static final float PURPLE_CORE_DISTANCE = 30f;
     
-    public static final float GREEN_CORE_CONE_DEGREE = 45f;
-    public static final float GREEN_CORE_DISTANCE = 2f;
+    public static final float ORANGE_CORE_CONE_DEGREE = 45f;
+    public static final float ORANGE_CORE_DISTANCE = 2f;
+    
+    public static final float RED_CORE_CONE_DEGREE = 180f;
+    public static final float RED_CORE_DISTANCE = 1.5f;
     
     /*Filtering bits*/
     public static final short LIGHT_FILTER = 1; 	//0b1
@@ -43,9 +46,8 @@ public final class Constants {
     public static final short WALL_FILTER = 16;		//0b1 0000
     public static final short ITEM_FILTER = 32;		//0b10 0000
 
+    public static final String T0 = "Bonjour dépositaire ! Besoin d'aide ?";
     
     public static final float FRAME_DURATION = 0.2f;
-    
-    public static final int SPRITE_SIZE = 128;
     
 }

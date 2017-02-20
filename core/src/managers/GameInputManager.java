@@ -4,8 +4,8 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
-import characters.Player;
 import dungeon.Maze;
+import main.MainGame;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
@@ -46,7 +46,7 @@ public final class GameInputManager implements InputProcessor {
 		if (button == Input.Buttons.LEFT) {
 			
 			Maze.player.moving = true;
-			Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+			Vector3 v = MainGame.camera.unproject(new Vector3(screenX, screenY, 0));
 			Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 
 		}
@@ -55,7 +55,7 @@ public final class GameInputManager implements InputProcessor {
 		
 		if (button == Input.Buttons.RIGHT) {
 			
-			Vector3 v = (GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0))).scl(1 / Constants.PPM);
+			Vector3 v = (MainGame.camera.unproject(new Vector3(screenX, screenY, 0))).scl(1 / Constants.PPM);
 			GameScreen.world.QueryAABB(callback, v.x, v.y, v.x, v.y);
 			
 		}
@@ -68,7 +68,7 @@ public final class GameInputManager implements InputProcessor {
 		if (button == Input.Buttons.LEFT) {
 			
 			Maze.player.moving = false;
-			Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+			Vector3 v = MainGame.camera.unproject(new Vector3(screenX, screenY, 0));
 			Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 			
 		}
@@ -78,7 +78,7 @@ public final class GameInputManager implements InputProcessor {
 
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		
-		Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+		Vector3 v = MainGame.camera.unproject(new Vector3(screenX, screenY, 0));
 		Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 		
 		return false;
@@ -87,7 +87,7 @@ public final class GameInputManager implements InputProcessor {
 
 	public boolean mouseMoved(int screenX, int screenY) {
 		
-		Vector3 v = GameScreen.game_cam.unproject(new Vector3(screenX, screenY, 0));
+		Vector3 v = MainGame.camera.unproject(new Vector3(screenX, screenY, 0));
 		Maze.player.setDirection(MathExtension.getAngle(Maze.player.getPosition().scl(Constants.PPM), new Vector2(v.x, v.y)));
 			
 		return false;
@@ -103,8 +103,8 @@ public final class GameInputManager implements InputProcessor {
 				Assets.virtual_width += 10;
 				Assets.virtual_height += 10;
 			
-				GameScreen.game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
-				GameScreen.game_cam.update();
+				MainGame.camera.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
+				MainGame.camera.update();
 			
 			} else {
 
@@ -120,8 +120,8 @@ public final class GameInputManager implements InputProcessor {
 				Assets.virtual_width -= 10;
 				Assets.virtual_height -= 10;
 			
-				GameScreen.game_cam.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
-				GameScreen.game_cam.update();
+				MainGame.camera.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
+				MainGame.camera.update();
 		
 			} else {
 

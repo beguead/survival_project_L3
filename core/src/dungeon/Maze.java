@@ -21,10 +21,11 @@ import characters.Player;
 import interfaces.IUpdateAndRender;
 import items.BlueCore;
 import items.Core;
-import items.GreenCore;
+import items.OrangeCore;
 import items.Particle;
-import items.WhiteCore;
-import items.YellowCore;
+import items.CyanCore;
+import items.PurpleCore;
+import items.RedCore;
 import main.MainGame;
 import pathfinding.CannotFindPathException;
 import pathfinding.Graph;
@@ -59,7 +60,7 @@ public class Maze implements Disposable, IUpdateAndRender {
     	parasites = new ArrayList<Parasite>();
     	particles = new ArrayList<Particle>();
     	
-		WhiteCore start_core = WhiteCore.getInstance();
+		CyanCore start_core = CyanCore.getInstance();
 		player = new Player();
 		player.setCore(start_core);
 		cores = new ArrayList<Core>();
@@ -76,8 +77,9 @@ public class Maze implements Disposable, IUpdateAndRender {
 			
 			double r = Math.random();
 			if (r < 0.10d) cores.add(new BlueCore());
-			else 	if (r < 0.20d) cores.add(new GreenCore());
-					else if (r < 0.30d) cores.add(new YellowCore());
+			else 	if (r < 0.20d) cores.add(new OrangeCore());
+					else	if (r < 0.30d) cores.add(new PurpleCore());
+							else if (r < 0.40d) cores.add(new RedCore());
 				
 		}
 	}
@@ -107,6 +109,8 @@ public class Maze implements Disposable, IUpdateAndRender {
 						new Wall(i, j);
 						
 				} else {
+					
+					if (Math.random() < 0.07f) {
 						
 						int neighbours = 0;
 						
@@ -119,21 +123,19 @@ public class Maze implements Disposable, IUpdateAndRender {
 						
 							case 5: {
 							
-								if (Math.random() < 0.10f) mapobjects.add(new LightBarrier(i, j, false));
+								mapobjects.add(new LightBarrier(i, j, false));
 								break;
 							}
 						
 							case 10: {
 							
-								if (Math.random() < 0.10f) mapobjects.add(new LightBarrier(i, j, true));
+								mapobjects.add(new LightBarrier(i, j, true));
 								break;
 							}
-						
 						}
-						
-						environment_layer.setCell(i, j, floor);
-						graph.addNode(i * Constants.MAP_HEIGHT + j);
-						
+					}
+					environment_layer.setCell(i, j, floor);
+					graph.addNode(i * Constants.MAP_HEIGHT + j);
 				}
 			}
 		
@@ -216,17 +218,15 @@ public class Maze implements Disposable, IUpdateAndRender {
 		
 	}
 	
-	public static ConcurrentLinkedQueue<Vector2> findShortestPath(Vector2 from, Vector2 to) {
+	public static ConcurrentLinkedQueue<Vector2> findShortestPath(Vector2 from, Vector2 to) throws CannotFindPathException {
 		
-		try { return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), (int)((int)to.x * Constants.MAP_HEIGHT + to.y)); }
-		catch (CannotFindPathException e) { return null; }
+		return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), (int)((int)to.x * Constants.MAP_HEIGHT + to.y));
 		
 	}
 	
-	public static ConcurrentLinkedQueue<Vector2> getRandomPath(Vector2 from) {
+	public static ConcurrentLinkedQueue<Vector2> getRandomPath(Vector2 from) throws CannotFindPathException {
 		
-		try { return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), graph.getRandomKey()); }
-		catch (CannotFindPathException e) { return null; }
+		return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), graph.getRandomKey());
 		
 	}
 	
@@ -255,13 +255,13 @@ public class Maze implements Disposable, IUpdateAndRender {
 					
 					} else particles.get(i).update();
 			}
-		}
+		} else portal.update();
 	}
 
 	@Override
 	public void render() {
 		
-		renderer.setView(GameScreen.game_cam);
+		renderer.setView(MainGame.camera);
 		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("environment_layer"));
 
 		for (MapObject mo : map.getLayers().get("environment_layer").getObjects())

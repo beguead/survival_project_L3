@@ -1,17 +1,13 @@
 package characters;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import box2dLight.ConeLight;
 import dungeon.Maze;
 import items.BlueCore;
 import items.Core;
-import items.GreenCore;
-import items.YellowCore;
 import lights.Aura;
-import main.MainGame;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
@@ -23,17 +19,17 @@ public class Player extends Character {
 
 	private Core core;
 	private ConeLight cone_light1;
-	private Sprite sprite;
 	
 	public Player() {
 		super();
-		sprite = Assets.player_base;
+		
+		current_frame = Assets.player.getKeyFrame(GameScreen.state_time);
 		
 		/*Movements*/
 		speed = 1f;
 		moving = false;
 		
-		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody, Maze.getRandomFreePosition(), sprite.getRegionWidth() / (2 * Constants.PPM), false, Constants.PLAYER_FILTER,
+		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody, Maze.getRandomFreePosition(), current_frame.getRegionWidth() / (2 * Constants.PPM), false, Constants.PLAYER_FILTER,
 												(short)(Constants.WALL_FILTER | Constants.ITEM_FILTER | Constants.SENSOR_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER) , this	);
 		
 		/*Lights*/
@@ -47,6 +43,7 @@ public class Player extends Character {
 		
 		aura.dispose();
 		cone_light1.dispose();
+		GameScreen.world.destroyBody(body);
 		
 	}
 	
@@ -70,19 +67,15 @@ public class Player extends Character {
 		if (core instanceof BlueCore) {
 			
 			BlueCore bc = ((BlueCore)(core));
-			sprite = Assets.player_blue;
 			bc.setMirrorLightActive(true);
 			bc.majMirrorLightDirection((float)(direction * Constants.TO_DEGREE));
 			
-		} else	if (core instanceof GreenCore) sprite = Assets.player_green;
-				else	if (core instanceof YellowCore) sprite = Assets.player_yellow;
-						else  sprite = Assets.player_base;	
+		}
 		
 		aura.setColor(core.getColor());
 		cone_light1.setColor(core.getColor());
 		cone_light1.setDistance(core.getDistance());
 		cone_light1.setConeDegree(core.getConeDegree());
-	    sprite.setRotation((float)(direction * Constants.TO_DEGREE));
 		
 	}
 
@@ -93,20 +86,17 @@ public class Player extends Character {
 		float angle_in_degree = (float)(angle * Constants.TO_DEGREE);
 		cone_light1.setDirection(angle_in_degree);
 		if (core instanceof BlueCore) ((BlueCore)(core)).majMirrorLightDirection(angle_in_degree);
-	    sprite.setRotation(angle_in_degree);
 		
 	}
 
 	public void update() {
 		
+		current_frame = Assets.player.getKeyFrame(GameScreen.state_time);
+		
 		if (moving) move();
 		else body.setLinearVelocity(0f, 0f);
 		cone_light1.setPosition(getPosition());
 		core.setPosition(getPosition());
-	    sprite.setPosition(getPosition().x * Constants.PPM - sprite.getWidth() * 0.5f, getPosition().y * Constants.PPM - sprite.getHeight() * 0.5f);
 		
 	}
-	
-	public void render() { sprite.draw(MainGame.batch); }
-	
 }

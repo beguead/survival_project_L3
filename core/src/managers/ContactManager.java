@@ -12,10 +12,11 @@ import dungeon.Maze;
 import dungeon.Portal;
 import items.BlueCore;
 import items.Core;
-import items.GreenCore;
+import items.OrangeCore;
 import items.Particle;
-import items.WhiteCore;
-import items.YellowCore;
+import items.CyanCore;
+import items.PurpleCore;
+import items.RedCore;
 import screens.GameScreen;
 import characters.Player;
 
@@ -55,16 +56,17 @@ public class ContactManager implements ContactListener {
 						if (fa.getUserData() instanceof Core) {
 							
 							if (fa.getUserData() instanceof BlueCore) c = (BlueCore)(fa.getUserData());
-							else	if (fa.getUserData() instanceof GreenCore) c = (GreenCore)(fa.getUserData());
-									else	if (fa.getUserData() instanceof YellowCore) c = (YellowCore)(fa.getUserData());
-											else c = (WhiteCore)(fa.getUserData());
+							else	if (fa.getUserData() instanceof OrangeCore) c = (OrangeCore)(fa.getUserData());
+									else	if (fa.getUserData() instanceof PurpleCore) c = (PurpleCore)(fa.getUserData());
+											else c = (CyanCore)(fa.getUserData());
 							
 						} else {
 							
 							if (fb.getUserData() instanceof BlueCore) c = (BlueCore)(fb.getUserData());
-							else	if (fb.getUserData() instanceof GreenCore) c = (GreenCore)(fb.getUserData());
-									else	if (fb.getUserData() instanceof YellowCore) c = (YellowCore)(fb.getUserData());
-											else c = (WhiteCore)(fb.getUserData());						
+							else	if (fb.getUserData() instanceof OrangeCore) c = (OrangeCore)(fb.getUserData());
+									else	if (fb.getUserData() instanceof PurpleCore) c = (PurpleCore)(fb.getUserData());
+											else	if (fb.getUserData() instanceof RedCore) c = (RedCore)(fb.getUserData());
+													else c = (CyanCore)(fb.getUserData());						
 							
 						}
 						

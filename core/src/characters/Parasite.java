@@ -9,7 +9,7 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import dungeon.Maze;
 import lights.Aura;
-import main.MainGame;
+import pathfinding.CannotFindPathException;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
@@ -29,20 +29,22 @@ public class Parasite extends Character {
 	private boolean near_of_the_player;
 	
 	public Parasite() {
+		
+		current_frame = Assets.parasite.getKeyFrame(GameScreen.state_time);
 
 		BodyDef bdef = new BodyDef();
 		bdef.type = BodyDef.BodyType.DynamicBody;
 		
 		body = GameScreen.world.createBody(bdef);
 			
-		CircleShape body_fixture = BodyCreator.createCircleShape(body, Assets.parasite.getKeyFrame(GameScreen.state_time).getRegionWidth() / (1.5f * Constants.PPM));
+		CircleShape body_fixture = BodyCreator.createCircleShape(body, current_frame.getRegionWidth() / (3f * Constants.PPM));
 		FixtureDef fdef1 = BodyCreator.createFixtureDef(body_fixture);
 		fdef1.filter.categoryBits = Constants.ENEMY_FILTER;
 		fdef1.filter.maskBits = (short)(Constants.WALL_FILTER | Constants.PLAYER_FILTER | Constants.LIGHT_FILTER);
 		body.createFixture(fdef1).setUserData(this);
 		body_fixture.dispose();
 		
-		CircleShape detection_field_fixture = BodyCreator.createCircleShape(body, 1.2f);
+		CircleShape detection_field_fixture = BodyCreator.createCircleShape(body, 1f);
 		FixtureDef fdef2 = BodyCreator.createFixtureDef(detection_field_fixture);
 		fdef2.isSensor = true;
 		fdef2.filter.categoryBits = Constants.SENSOR_FILTER;
@@ -53,7 +55,7 @@ public class Parasite extends Character {
 		Vector2 initial_position = Maze.getRandomFreePosition();
 		body.setTransform(initial_position.x, initial_position.y, 0f);
 		
-		aura = new Aura(body, Color.WHITE, 0.5f);
+		aura = new Aura(body, Color.CHARTREUSE, 0.3f);
 		
 		isNearOfThePlayer(false);
 		setState(states.normal);
@@ -64,6 +66,7 @@ public class Parasite extends Character {
 		
 		state = s;
 		path = null;
+		current_target = null;
 		
 		switch (state) {
 		
@@ -71,7 +74,6 @@ public class Parasite extends Character {
 				
 				aura.setActive(false);
 				speed = 0.2f;
-				timer = 0l;
 				break;
 				
 			}
@@ -79,8 +81,9 @@ public class Parasite extends Character {
 			case hunting : {
 				
 				aura.setActive(true);
-				aura.setColor(Color.RED);
-				speed = 1f;
+				aura.setColor(Color.CHARTREUSE);
+				timer = System.currentTimeMillis() + 10000;
+				speed = 0.9f;
 				break;
 				
 			}
@@ -88,9 +91,8 @@ public class Parasite extends Character {
 			case stunned : {
 				
 				aura.setActive(true);
-				aura.setColor(Color.CHARTREUSE);
-				speed = 0.2f;
-				direction *= -1;
+				aura.setColor(Color.YELLOW);
+				body.setLinearVelocity(0f, 0f);
 				timer = System.currentTimeMillis() + 2000;
 				break;
 				
@@ -103,44 +105,67 @@ public class Parasite extends Character {
 	@Override
 	public void update() {
 		
-		if (near_of_the_player && state == states.normal) setState( states.hunting);
+		current_frame = Assets.parasite.getKeyFrame(GameScreen.state_time);
 		
-		if (state == states.hunting) {
+		switch (state) {
+		
+			case normal : {
 			
-			path = Maze.findShortestPath(body.getPosition(), Maze.player.getPosition());
-			if (path != null) current_target = path.poll();
+					if (near_of_the_player) setState(states.hunting);
+					else {
+						updatePath();
+						move();
+					}
+				break;
+			}
+		
+			case hunting : {
+			
+				if (System.currentTimeMillis() > timer) setState(states.stunned);
+				else {
+					
+					if (!near_of_the_player) updatePath();
+					else updateDirection(Maze.player.getPosition(), false);
+					move();
+					
+				}
+				break;
 				
-		} else if (timer != 0  && System.currentTimeMillis() > timer) setState(states.normal);
-		
-		if (current_target == null || path == null) {
-			
-			if (state == states.hunting) path = Maze.findShortestPath(body.getPosition(), Maze.player.getPosition());
-			else path = Maze.getRandomPath(body.getPosition());
-			
-			if (path != null) current_target = path.poll();
-			
-			return;
-			
+			}
+			case stunned : if (System.currentTimeMillis() > timer) setState(states.normal);
 		}
-		
-		if ((body.getPosition().x > current_target.x + 0.30f && body.getPosition().x < current_target.x + 0.70f && body.getPosition().y > current_target.y + 0.30f && body.getPosition().y < current_target.y + 0.70f) && ((current_target = path.poll()) != null))
-			direction = MathExtension.getAngle(getPosition().scl(Constants.PPM), new Vector2((current_target.x + 0.5f) * Constants.PPM, (current_target.y + 0.5f) * Constants.PPM));
-		
-		move();
-
 	}
 	
-	@Override
-	public void render() {
+	private void updatePath() {
 		
-		float width = Assets.parasite.getKeyFrame(GameScreen.state_time).getRegionWidth() / 2;
-		float height = Assets.parasite.getKeyFrame(GameScreen.state_time).getRegionHeight() / 2;
+		if (current_target == null) {
+			
+			try { 
+				
+				path = state == states.hunting ?
+					Maze.findShortestPath(body.getPosition(), Maze.player.getPosition()) :
+					Maze.findShortestPath(body.getPosition(), Maze.getRandomFreePosition());
+					
+				current_target = path.poll();
+				updateDirection(current_target, true);
+				
+			}
+			catch (CannotFindPathException e) { return; }
 		
-		MainGame.batch.draw(	Assets.parasite.getKeyFrame(GameScreen.state_time),
-								getPosition().x * Constants.PPM - width, getPosition().y * Constants.PPM - height, width, height,
-								Assets.parasite.getKeyFrame(GameScreen.state_time).getRegionWidth(), Assets.parasite.getKeyFrame(GameScreen.state_time).getRegionHeight(),
-								2f, 2f, (float)(direction * Constants.TO_DEGREE)	);
-
+		} else {
+			
+			if (	body.getPosition().x > current_target.x + 0.30f && body.getPosition().x < current_target.x + 0.70f
+					&& body.getPosition().y > current_target.y + 0.30f && body.getPosition().y < current_target.y + 0.70f
+					&& (current_target = path.poll()) != null ) updateDirection(current_target, true);
+			
+		}
+	}
+	
+	private void updateDirection(Vector2 to, boolean shift) {
+		
+		Vector2 v = shift ? new Vector2 ((to.x + 0.5f) * Constants.PPM, (to.y + 0.5f) * Constants.PPM) : to.scl(Constants.PPM) ;
+		direction = MathExtension.getAngle(getPosition().scl(Constants.PPM), v);
+		
 	}
 	
 	public void setPosition(Vector2 position) { body.setTransform(position.x, position.y, 0f);}

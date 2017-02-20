@@ -35,16 +35,15 @@ public class LightBarrier extends MapObject implements Disposable {
 		
 		if (vertical) {
 			
-			width = Constants.TILE_WIDTH / (4 * Constants.PPM);
+			width = Constants.TILE_WIDTH / (6 * Constants.PPM);
 			height = Constants.TILE_WIDTH / (2 * Constants.PPM);
-			x += 0.25f;
+			x += 0.33f;
 			
 		} else {
 			
-			s.setRotation(90f);
 			width = Constants.TILE_WIDTH / (2 * Constants.PPM);
-			height = Constants.TILE_WIDTH / (4 * Constants.PPM);
-			y += 0.25f;
+			height = Constants.TILE_WIDTH / (6 * Constants.PPM);
+			y += 0.33f;
 			
 		}
 		
@@ -71,24 +70,13 @@ public class LightBarrier extends MapObject implements Disposable {
 		
 		if (barrier.isActive()) {
 			
-			float rotation, width, height;
+			float width = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth() / 2;
+			float height = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight() / 2;
 			
-			if (vertical) {
-				
-				rotation = 90f;
-				width = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth();
-				height = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight();
-				
-			} else {
-				
-				rotation = 0f;
-				height = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth();
-				width = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight();
-				
-			}
-			
-			MainGame.batch.draw(	Assets.light_barrier.getKeyFrame(GameScreen.state_time), base.getPosition().x * Constants.PPM - width / 2, base.getPosition().y  * Constants.PPM - height / 2,
-									width, height);
+			MainGame.batch.draw(	Assets.light_barrier.getKeyFrame(GameScreen.state_time),
+									base.getPosition().x * Constants.PPM - width, base.getPosition().y  * Constants.PPM - height, width, height,
+									Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth(), Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight(),
+									1f, 1f, vertical ? 0f : 90f);
 			
 		}
 		

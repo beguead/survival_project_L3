@@ -1,34 +1,29 @@
 package main;
 
-
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import screens.GameScreen;
 import screens.MainMenuScreen;
 import utilities.Assets;
 
 public class MainGame extends Game {
 	
-	//Singleton
 	private static final MainGame INSTANCE = new MainGame();
+	public static SpriteBatch batch;
+	public static OrthographicCamera camera = new OrthographicCamera();
+	public static BitmapFont font;
 	
 	private MainGame() {};
-	
-	//Screens
-	public static MainMenuScreen m2Screen;
-    public static GameScreen gScreen ;
-    public static SpriteBatch batch;
 
     public void create() {
     	
-      	batch = new SpriteBatch();
-    	
     	Assets.load();
-    	
-    	m2Screen = new MainMenuScreen();
-    	gScreen = new GameScreen();
-    	setScreen(m2Screen);  
+    	batch = new SpriteBatch();
+    	camera = new OrthographicCamera();
+		font = new BitmapFont();
+    	setScreen(MainMenuScreen.getInstance());  
             
     }
     
