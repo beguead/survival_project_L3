@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import dungeon.Maze;
 import lights.Aura;
 import pathfinding.CannotFindPathException;
@@ -14,66 +15,84 @@ import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
 import utilities.Constants;
+import utilities.Constants.PARASITE_STATES;
 import utilities.MathExtension;
 
 public class Parasite extends Character {
 	
-	private static enum states {normal, hunting, stunned};
-	private states state;
-	
-	private ConcurrentLinkedQueue<Vector2> path;
-	private Vector2 current_target;
-	
+	private PARASITE_STATES state;
 	private long timer;
 	
-	private boolean near_of_the_player;
+	private ConcurrentLinkedQueue<Vector2> path;
+	private Vector2 target;
+	
+	private boolean near_player;
 	
 	public Parasite() {
 		
-		current_frame = Assets.parasite.getKeyFrame(GameScreen.state_time);
+		current_frame = Assets.parasite.getKeyFrame(GameScreen.getStateTime());
 
 		BodyDef bdef = new BodyDef();
 		bdef.type = BodyDef.BodyType.DynamicBody;
-		
 		body = GameScreen.world.createBody(bdef);
 			
-		CircleShape body_fixture = BodyCreator.createCircleShape(body, current_frame.getRegionWidth() / (3f * Constants.PPM));
-		FixtureDef fdef1 = BodyCreator.createFixtureDef(body_fixture);
-		fdef1.filter.categoryBits = Constants.ENEMY_FILTER;
-		fdef1.filter.maskBits = (short)(Constants.WALL_FILTER | Constants.PLAYER_FILTER | Constants.LIGHT_FILTER);
-		body.createFixture(fdef1).setUserData(this);
+		CircleShape body_fixture = BodyCreator.createCircleShape(body, current_frame.getRegionWidth() / (4f * Constants.PPM));
+		FixtureDef fdef = BodyCreator.createFixtureDef(body_fixture);
+		fdef.filter.categoryBits = Constants.ENEMY_FILTER;
+		fdef.filter.maskBits = Constants.WALL_FILTER | Constants.PLAYER_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER;
+		body.createFixture(fdef).setUserData(this);
 		body_fixture.dispose();
 		
-		CircleShape detection_field_fixture = BodyCreator.createCircleShape(body, 1f);
-		FixtureDef fdef2 = BodyCreator.createFixtureDef(detection_field_fixture);
-		fdef2.isSensor = true;
-		fdef2.filter.categoryBits = Constants.SENSOR_FILTER;
-		fdef2.filter.maskBits = (short)(Constants.PLAYER_FILTER);
+		float radius = 8;
+		Vector2 vertices[] = new Vector2[6];
+		vertices[0] = new Vector2(0f, 0f);
+		  
+		for (int i = 0; i < 5; ++i) {
+			 
+		     double angle = i / 6.0 * 90 / Constants.TO_DEGREE;
+		     vertices[i + 1] = new Vector2((float)(radius * Math.cos(angle) / 7), (float)(radius * Math.sin(angle) / 7));
+		      
+		}
+		 
+		PolygonShape detection_field_fixture1 = new PolygonShape();
+		detection_field_fixture1.set(vertices);
+		 
+		CircleShape detection_field_fixture2 = BodyCreator.createCircleShape(body, 0.5f);
+		
+		FixtureDef fdef1 = BodyCreator.createFixtureDef(detection_field_fixture1);
+		FixtureDef fdef2 = BodyCreator.createFixtureDef(detection_field_fixture2);
+		
+		fdef1.isSensor = fdef2.isSensor = true;
+		fdef1.filter.categoryBits = fdef2.filter.categoryBits = Constants.ENEMY_FILTER;
+		fdef1.filter.maskBits = Constants.PLAYER_FILTER ;
+		fdef2.filter.maskBits = Constants.PLAYER_FILTER | Constants.WALL_FILTER ;
+		body.createFixture(fdef1).setUserData(this);
 		body.createFixture(fdef2).setUserData(this);
-		detection_field_fixture.dispose();
+		detection_field_fixture1.dispose();
+		detection_field_fixture2.dispose();
 		
 		Vector2 initial_position = Maze.getRandomFreePosition();
 		body.setTransform(initial_position.x, initial_position.y, 0f);
 		
-		aura = new Aura(body, Color.CHARTREUSE, 0.3f);
+		aura = new Aura(body, Color.WHITE, 0.4f);
 		
-		isNearOfThePlayer(false);
-		setState(states.normal);
+		near_player = false;
+		setState(PARASITE_STATES.normal);
 		
 	}
 	
-	public void setState(states s) {
+	public void setState(PARASITE_STATES state) {
 		
-		state = s;
+		this.state = state;
 		path = null;
-		current_target = null;
+		target = null;
 		
 		switch (state) {
 		
 			case normal : {
 				
 				aura.setActive(false);
-				speed = 0.2f;
+				speed = 0.4f;
 				break;
 				
 			}
@@ -81,9 +100,8 @@ public class Parasite extends Character {
 			case hunting : {
 				
 				aura.setActive(true);
-				aura.setColor(Color.CHARTREUSE);
-				timer = System.currentTimeMillis() + 10000;
-				speed = 0.9f;
+				aura.setColor(Color.RED);
+				speed = 0.8f;
 				break;
 				
 			}
@@ -100,18 +118,25 @@ public class Parasite extends Character {
 		}	
 	}
 	
-	public void setStunned() { setState(states.stunned); }
+	public boolean isNearPlayer() { return near_player; }
+	
+	public void setNearPlayer(boolean near) {
+		
+		if (near_player = near) timer = 0;
+		else timer = System.currentTimeMillis() + 7000;
+		
+	}
 	
 	@Override
 	public void update() {
 		
-		current_frame = Assets.parasite.getKeyFrame(GameScreen.state_time);
-		
+		current_frame = Assets.parasite.getKeyFrame(GameScreen.getStateTime());
+			
 		switch (state) {
 		
 			case normal : {
 			
-					if (near_of_the_player) setState(states.hunting);
+					if (near_player) setState(PARASITE_STATES.hunting);
 					else {
 						updatePath();
 						move();
@@ -121,42 +146,42 @@ public class Parasite extends Character {
 		
 			case hunting : {
 			
-				if (System.currentTimeMillis() > timer) setState(states.stunned);
+				if (timer != 0 && System.currentTimeMillis() > timer) setState(PARASITE_STATES.stunned);
 				else {
 					
-					if (!near_of_the_player) updatePath();
-					else updateDirection(Maze.player.getPosition(), false);
-					move();
+					if (near_player) updateDirection(Maze.player.getPosition(), false);
+					else updatePath();
 					
+					move();
 				}
 				break;
 				
 			}
-			case stunned : if (System.currentTimeMillis() > timer) setState(states.normal);
+			case stunned : if (System.currentTimeMillis() > timer) setState(PARASITE_STATES.normal);
+			
 		}
 	}
 	
 	private void updatePath() {
 		
-		if (current_target == null) {
+		if (target == null) {
 			
 			try { 
 				
-				path = state == states.hunting ?
+				path = state == PARASITE_STATES.hunting ?
 					Maze.findShortestPath(body.getPosition(), Maze.player.getPosition()) :
 					Maze.findShortestPath(body.getPosition(), Maze.getRandomFreePosition());
 					
-				current_target = path.poll();
-				updateDirection(current_target, true);
+				target = path.poll();
+				updateDirection(target, true);
 				
 			}
 			catch (CannotFindPathException e) { return; }
 		
 		} else {
 			
-			if (	body.getPosition().x > current_target.x + 0.30f && body.getPosition().x < current_target.x + 0.70f
-					&& body.getPosition().y > current_target.y + 0.30f && body.getPosition().y < current_target.y + 0.70f
-					&& (current_target = path.poll()) != null ) updateDirection(current_target, true);
+			if (	MathExtension.getDistance(getPosition(), new Vector2(target.x + 0.5f, target.y + 0.5f)) < 0.3f
+					&& (target = path.poll()) != null ) updateDirection(target, true);
 			
 		}
 	}
@@ -165,11 +190,10 @@ public class Parasite extends Character {
 		
 		Vector2 v = shift ? new Vector2 ((to.x + 0.5f) * Constants.PPM, (to.y + 0.5f) * Constants.PPM) : to.scl(Constants.PPM) ;
 		direction = MathExtension.getAngle(getPosition().scl(Constants.PPM), v);
+		body.setTransform(getPosition(), (float) (direction - 35f / Constants.TO_DEGREE));
 		
 	}
 	
-	public void setPosition(Vector2 position) { body.setTransform(position.x, position.y, 0f);}
-	
-	public void isNearOfThePlayer(boolean near) { near_of_the_player = near;}
+	public void setPosition(Vector2 position) { body.setTransform(position.x, position.y, 0f); }
 
 }

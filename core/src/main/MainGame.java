@@ -11,11 +11,14 @@ import utilities.Assets;
 public class MainGame extends Game {
 	
 	private static final MainGame INSTANCE = new MainGame();
+	
 	public static SpriteBatch batch;
-	public static OrthographicCamera camera = new OrthographicCamera();
+	public static OrthographicCamera camera;
 	public static BitmapFont font;
 	
 	private MainGame() {};
+	
+    public static MainGame getInstance() { return INSTANCE; }
 
     public void create() {
     	
@@ -26,7 +29,4 @@ public class MainGame extends Game {
     	setScreen(MainMenuScreen.getInstance());  
             
     }
-    
-    public static MainGame getInstance() { return INSTANCE; }
-	
 }

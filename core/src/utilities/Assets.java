@@ -11,13 +11,11 @@ public final class Assets {
 	
 	private Assets() {}
 	
-	/*Camera*/
-    public static int virtual_width = 1200;
-    public static int virtual_height = 800;
-	
    public static final Music main_menu_music = Gdx.audio.newMusic(Gdx.files.internal("sounds/halo5_main_menu_theme.mp3"));
    public static final Music game_background_music = Gdx.audio.newMusic(Gdx.files.internal("sounds/flood_theme.mp3"));
    public static final Texture main_menu_background =  new Texture(Gdx.files.internal("ui/menu.png"));
+   public static final Texture fail_img =  new Texture(Gdx.files.internal("ui/fail.png"));
+   public static final Texture escape_img =  new Texture(Gdx.files.internal("ui/escape.png"));
    public static final Texture monitor =  new Texture(Gdx.files.internal("ui/monitor.png"));
     
 	
@@ -34,17 +32,12 @@ public final class Assets {
 	
 	public static Animation parasite;
 	public static Animation particle;
-	public static Animation player;
+	public static Animation player_normal;
+	public static Animation player_hunted;
+	public static Animation player_dead;
 	
-		/*Portal*/
-	public static Animation portal_opening;
-	public static Animation portal_standing;
-	public static Animation portal_closing;
-	
-		/*Light barrier*/
-	public static Animation barrier_closing;
+	public static Animation portal;
 	public static Animation light_barrier;
-	public static Animation barrier_opening;
 	
 	public static void load() {
 		
@@ -63,14 +56,15 @@ public final class Assets {
 		particle.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
 		
 		split = TextureRegion.split(new Texture(Gdx.files.internal("characters/player.png")), 32, 32);
-		player = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 3, 0));
-		player.setPlayMode(Animation.PlayMode.LOOP);
+		player_normal = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 3, 0));
+		player_normal.setPlayMode(Animation.PlayMode.LOOP);
+		player_hunted = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 3, 1));
+		player_hunted.setPlayMode(Animation.PlayMode.LOOP);
+		player_dead = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 3, 2));
 		
 		split = TextureRegion.split(new Texture(Gdx.files.internal("environment/portal.png")), 100, 75);
-		portal_opening = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 4, 0));
-		portal_standing = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 8, 1));
-		portal_standing.setPlayMode(Animation.PlayMode.LOOP);
-		portal_closing = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 7, 2));
+		portal = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 8, 0));
+		portal.setPlayMode(Animation.PlayMode.LOOP);
 		
 		split = TextureRegion.split(new Texture(Gdx.files.internal("environment/light_barrier/light_barrier.png")), 50, 128);
 		light_barrier = new Animation(Constants.FRAME_DURATION, framesForAnimation(split, 3, 0));

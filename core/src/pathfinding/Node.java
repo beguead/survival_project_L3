@@ -6,6 +6,7 @@ public class Node implements Comparable<Node> {
 	
 	public int height;
 	public boolean checked;
+	public boolean free;
 	
 	public int predecessor;
 	public ArrayList<Integer> sons;
@@ -14,6 +15,7 @@ public class Node implements Comparable<Node> {
 		
 		height = -1;
 		checked = false;
+		free = true;
 		predecessor = -1;
 		sons = new ArrayList<Integer>();
 		

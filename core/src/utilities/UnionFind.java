@@ -3,7 +3,7 @@ package utilities;
 public class UnionFind {
 	
 	private UnionFind father;
-	public int id;
+	private int id;
 
 	public UnionFind() {
 		
@@ -39,10 +39,6 @@ public class UnionFind {
 		
 	}
 	
-	public void setFather(UnionFind s) {
-		
-		this.father = s;
-		
-	}
+	public void setFather(UnionFind s) { father = s; }
 	
 }

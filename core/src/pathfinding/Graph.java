@@ -14,7 +14,7 @@ import utilities.Constants;
 
 public class Graph {
 
-	private HashMap<Integer, Node> nodes;
+	private static HashMap<Integer, Node> nodes;
 	private ArrayList<Integer> keys;
 	
 	public Graph() { 
@@ -92,7 +92,7 @@ public class Graph {
 				Map.Entry<Integer, Node> pair = (Map.Entry<Integer, Node>)it.next();
 				current_node = pair.getValue();
 			
-				if (!current_node.checked && current_node.height >= 0 && (low_height == -1 || low_height > current_node.height)) {
+				if (!current_node.checked && current_node.free && current_node.height >= 0 && (low_height == -1 || low_height > current_node.height)) {
 				
 					low_height = current_node.height;
 					current_key = (int)pair.getKey();
@@ -125,17 +125,20 @@ public class Graph {
 		} while (current_key != -1);
 		
 		ConcurrentLinkedQueue<Vector2> path = new ConcurrentLinkedQueue<Vector2>();
-		for (int i = inverted_path.size() - 1 ; i >= 0 ; --i) {
-			
-			if (	i == 0 || i == inverted_path.size() - 1 ||
-					!((inverted_path.get(i - 1).x == inverted_path.get(i).x && inverted_path.get(i).x == inverted_path.get(i + 1).x) ||
-					(inverted_path.get(i - 1).y == inverted_path.get(i).y && inverted_path.get(i).y == inverted_path.get(i + 1).y))) path.add(inverted_path.get(i));
-		}
+		
+		path.add(inverted_path.get(inverted_path.size() - 1));
+		
+		for (int i = inverted_path.size() - 2 ; i > 1 ; --i)
+			path.add(inverted_path.get(i));
+		
+		if (inverted_path.size() > 1) path.add(inverted_path.get(1));
 		
 		return path;
 		
 	}
 	
 	public int getRandomKey() { return keys.get((int)(Math.random() * keys.size())); }
+	
+	public static void setFree(Vector2 position, boolean free) { nodes.get((int)position.x * Constants.MAP_HEIGHT + (int)position.y).free = free; }
 	
 }

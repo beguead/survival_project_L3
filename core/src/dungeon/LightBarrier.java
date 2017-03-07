@@ -9,7 +9,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.utils.Disposable;
 
 import lights.Aura;
-import main.MainGame;
+import pathfinding.Graph;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
@@ -18,8 +18,7 @@ import utilities.Constants;
 public class LightBarrier extends MapObject implements Disposable {
 	
 	private Aura aura;
-	private Body barrier;
-	private Body base;
+	private Body barrier, base;
 	private boolean vertical;
 	private final Sprite s = new Sprite(Assets.light_barrier_base);
 	
@@ -50,7 +49,7 @@ public class LightBarrier extends MapObject implements Disposable {
 		barrier = BodyCreator.createBoxBody(	BodyDef.BodyType.StaticBody, new Vector2(x, y), width, height, false,
 												Constants.WALL_FILTER, (short)(Constants.PLAYER_FILTER | Constants.ENEMY_FILTER), this	);
 		
-		aura = new Aura(base, Color.CYAN, 0.7f);
+		aura = new Aura(base, Color.ROYAL, 0f);
 		aura.setActive(false);
 		barrier.setActive(false);
 		
@@ -64,19 +63,19 @@ public class LightBarrier extends MapObject implements Disposable {
 	}
 
 
-	public void renderBase() { s.draw(MainGame.batch); }
+	public void renderBase() { s.draw(GameScreen.game_batch); }
 	
 	public void renderBarrier() {
 		
 		if (barrier.isActive()) {
 			
-			float width = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth() / 2;
-			float height = Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight() / 2;
-			
-			MainGame.batch.draw(	Assets.light_barrier.getKeyFrame(GameScreen.state_time),
-									base.getPosition().x * Constants.PPM - width, base.getPosition().y  * Constants.PPM - height, width, height,
-									Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionWidth(), Assets.light_barrier.getKeyFrame(GameScreen.state_time).getRegionHeight(),
-									1f, 1f, vertical ? 0f : 90f);
+			aura.setDistance((Assets.light_barrier.getKeyFrameIndex(GameScreen.getStateTime()) % 3 + 1) * 0.25f);
+			float width = Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()).getRegionWidth() / 2;
+			float height = Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()).getRegionHeight() / 2;
+			GameScreen.game_batch.draw(	Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()),
+										base.getPosition().x * Constants.PPM - width, base.getPosition().y  * Constants.PPM - height, width, height,
+										Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()).getRegionWidth(), Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()).getRegionHeight(),
+										1f, 1f, vertical ? 0f : 90f);
 			
 		}
 		
@@ -88,6 +87,7 @@ public class LightBarrier extends MapObject implements Disposable {
 		boolean tmp = !barrier.isActive();
 		aura.setActive(tmp);
 		barrier.setActive(tmp);
+		Graph.setFree(base.getPosition(), !tmp);
 		
 	}
 

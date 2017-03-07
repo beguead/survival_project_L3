@@ -3,10 +3,10 @@ package screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 
 import box2dLight.Light;
@@ -21,108 +21,112 @@ import utilities.Constants;
 public class GameScreen implements Screen {
 	
 	private static GameScreen INSTANCE = new GameScreen();
+	private static float state_time;
 	
 	public static Maze dungeon;
 	public static RayHandler ray_handler;
 	public static World world;
-	public static float state_time;
+	public static OrthographicCamera game_cam;
+	public static SpriteBatch game_batch;
 	
-	private Box2DDebugRenderer b2dr;
 	private Matrix4 debugmatrix;
 	
-	public static boolean pause, end;
-	public static boolean debug_renderer;
+	private short end;
+	private boolean pause;
 
 	private GameScreen() {
     	
+		game_cam = new OrthographicCamera();
+		game_cam.setToOrtho(false, Constants.APP_WIDTH, Constants.APP_HEIGHT);
+	   	game_batch = new SpriteBatch();
     	Light.setGlobalContactFilter(Constants.LIGHT_FILTER, (short)0, (short)(Constants.PLAYER_FILTER | Constants.WALL_FILTER | Constants.ENEMY_FILTER));
     	
     }
 	
 	public static GameScreen getInstance() { return INSTANCE; }
 	
+	@Override
 	public void show() {
 		
-		MainGame.camera.setToOrtho(false, Assets.virtual_width, Assets.virtual_height);
-		
 		resume();
+	   	end = 0;
 		
-	   	Gdx.input.setInputProcessor(GameInputManager.getInstance());
-		
+	   	game_batch = new SpriteBatch();
     	world = new World(new Vector2(0f, 0f), true);
-    	world.setContactListener(new ContactManager());
-		b2dr = new Box2DDebugRenderer();
     	ray_handler = new RayHandler(world);
-    	ray_handler.setAmbientLight(0);
-    	dungeon = new Maze();
-    	
-    	debug_renderer = end = false;
+    	ray_handler.setAmbientLight(0f);
+    	dungeon = Maze.getInstance();
+    	world.setContactListener(ContactManager.getInstance());
+	   	Gdx.input.setInputProcessor(GameInputManager.getInstance());
 	
 	}
 
+	@Override
 	@SuppressWarnings("deprecation")
 	public void render(float delta) {
 		
-			if (!pause) {
-				
-				state_time += delta;
-				
-				debugmatrix = MainGame.batch.getProjectionMatrix().cpy().scale(Constants.PPM, Constants.PPM, 0);
-			
-				world.step(1 / 60f, 6, 2);
-				gameCamUpdate();
-		
-				ray_handler.setCombinedMatrix(debugmatrix);
-				MainGame.batch.setProjectionMatrix(MainGame.camera.combined);
-		
-				dungeon.update();
-				MainGame.batch.begin();
-				dungeon.render();
-				MainGame.batch.end();
-		
-				ray_handler.updateAndRender();
-		
-			if (debug_renderer) b2dr.render(world, debugmatrix);
-			
-		if (end) {
+		if (end != 0) {
 			
 			pause();
-			MainGame.getInstance().setScreen(MainMenuScreen.getInstance());
 			dispose();
-			
+			MainGame.getInstance().setScreen(EndScreen.getInstance(end > 0));
+			return;
+
 		}
+		
+		if (!pause) {
+				
+			state_time += delta;
+				
+			debugmatrix = game_batch.getProjectionMatrix().cpy().scl(Constants.PPM);
+			
+			world.step(1 / 60f, 6, 2);
+			gameCamUpdate();
+		
+			ray_handler.setCombinedMatrix(debugmatrix);
+			
+			dungeon.update();
+			
+			game_batch.setProjectionMatrix(game_cam.combined);
+			game_batch.begin();
+			dungeon.render();
+			game_batch.end();
+		
+			ray_handler.updateAndRender();
+			
 		}
 	}
 
+	@Override
 	public void resize(int width, int height) {}
 	
 	private void gameCamUpdate() {
 		
-		Vector3 camPosition = MainGame.camera.position;
+		Vector3 camPosition = game_cam.position;
 		
-		float player_position = Maze.player.getPosition().x * Constants.PPM;
-		float half_cam = Assets.virtual_width / 2;
+		Vector2 player_position = Maze.player.getPosition().scl(Constants.PPM);
+		float half_cam = Constants.APP_WIDTH / 2;
 		
-		if (player_position - half_cam <= 0) camPosition.x += (half_cam - MainGame.camera.position.x) * Constants.CAMERA_LERP;
-			else	if (player_position + half_cam  >= Constants.MAP_WIDTH * Constants.TILE_WIDTH)
-						camPosition.x += (Constants.MAP_WIDTH * Constants.TILE_WIDTH - half_cam - MainGame.camera.position.x) * Constants.CAMERA_LERP;
+		if (player_position.x - half_cam <= 0) camPosition.x += (half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
+			else	if (player_position.x + half_cam  >= Constants.MAP_WIDTH * Constants.TILE_WIDTH)
+						camPosition.x += (Constants.MAP_WIDTH * Constants.TILE_WIDTH - half_cam - game_cam.position.x) * Constants.CAMERA_LERP;
 
-					else camPosition.x += (player_position - MainGame.camera.position.x) * Constants.CAMERA_LERP;
+					else camPosition.x += (player_position.x - game_cam.position.x) * Constants.CAMERA_LERP;
 		
-		player_position = Maze.player.getPosition().y * Constants.PPM;
-		half_cam = Assets.virtual_height / 2;
+		half_cam = Constants.APP_HEIGHT / 2;
 		
-		if (player_position - half_cam <= 0) camPosition.y += (half_cam - MainGame.camera.position.y) * Constants.CAMERA_LERP;
-			else	if (player_position + half_cam  >= Constants.MAP_HEIGHT * Constants.TILE_HEIGHT)
-						camPosition.y += (Constants.MAP_HEIGHT * Constants.TILE_HEIGHT - half_cam - MainGame.camera.position.y) * Constants.CAMERA_LERP;
+		if (player_position.y - half_cam <= 0) camPosition.y += (half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
+			else	if (player_position.y + half_cam  >= Constants.MAP_HEIGHT * Constants.TILE_HEIGHT)
+						camPosition.y += (Constants.MAP_HEIGHT * Constants.TILE_HEIGHT - half_cam - game_cam.position.y) * Constants.CAMERA_LERP;
 		
-					else camPosition.y += (player_position - MainGame.camera.position.y) * Constants.CAMERA_LERP;
+					else camPosition.y += (player_position.y - game_cam.position.y) * Constants.CAMERA_LERP;
 		
-		MainGame.camera.position.set(camPosition);
-		MainGame.camera.update();
+		game_cam.position.set(camPosition);
+		game_cam.update();
 		
 	}
 
+	@Override
 	public void pause() { 
 		
 		Assets.game_background_music.pause();
@@ -130,6 +134,7 @@ public class GameScreen implements Screen {
 		
 	}
 
+	@Override
 	public void resume() {
 		
 		Assets.game_background_music.play();
@@ -137,6 +142,7 @@ public class GameScreen implements Screen {
 		
 	}
 
+	@Override
 	public void hide() { 
 		
 		Gdx.input.setInputProcessor(null);
@@ -144,13 +150,25 @@ public class GameScreen implements Screen {
 		
 	}
 
+	@Override
 	public void dispose() {
 		
 		dungeon.dispose();
-		b2dr.dispose();
 		ray_handler.dispose();
-		//world.dispose();
+		world.dispose();
+		game_batch.dispose();
 		
 	}
-
+	
+	public static float getStateTime() { return state_time; }
+	
+	public void setEnd(short end) { this.end = end; }
+	
+	public void setPause() {
+		
+		if (pause) resume();
+		else pause();
+		
+	}
+	
 }

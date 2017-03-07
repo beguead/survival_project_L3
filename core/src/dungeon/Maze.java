@@ -22,11 +22,10 @@ import interfaces.IUpdateAndRender;
 import items.BlueCore;
 import items.Core;
 import items.OrangeCore;
-import items.Particle;
+import items.Fragment;
 import items.CyanCore;
 import items.PurpleCore;
 import items.RedCore;
-import main.MainGame;
 import pathfinding.CannotFindPathException;
 import pathfinding.Graph;
 import screens.GameScreen;
@@ -36,50 +35,52 @@ import utilities.UnionFind;
 
 public class Maze implements Disposable, IUpdateAndRender {
 	
-	public static Graph graph;
-	public static Portal portal;
+	private static Graph graph;
+	private static Portal portal;
 	
-	public static ArrayList<Parasite> parasites;
-	public static ArrayList<Core> cores;
-	public static ArrayList<Particle> particles;
+	private static ArrayList<Parasite> parasites;
+	private static ArrayList<Core> cores;
+	private static ArrayList<Fragment> particles;
 	public static Player player;
 	
 	public static Core core_near_the_player;
 	private TiledMap map;
 	private OrthogonalTiledMapRenderer renderer;
 	
-	public Maze() {
+	public static Maze getInstance() { return new Maze(); }
+	
+	private Maze() {
 		
 		core_near_the_player = null;
 		portal = null;
 		
     	graph = new Graph();
     	createTiledMaze();
-		renderer = new OrthogonalTiledMapRenderer(map, MainGame.batch);
+		renderer = new OrthogonalTiledMapRenderer(map, GameScreen.game_batch);
 		
     	parasites = new ArrayList<Parasite>();
-    	particles = new ArrayList<Particle>();
+    	particles = new ArrayList<Fragment>();
     	
 		CyanCore start_core = CyanCore.getInstance();
-		player = new Player();
+		player = Player.getInstance();
 		player.setCore(start_core);
 		cores = new ArrayList<Core>();
 		cores.add(start_core);
 
 		int i;
-		for (i = 0 ; i < 0 ; ++i) particles.add(new Particle());
+		for (i = 0 ; i < Constants.NB_FRAGMENTS ; ++i) particles.add(new Fragment());
 		for (i = 0 ; i < Constants.MAP_WIDTH * Constants.MAP_HEIGHT / 25 ; ++i) {
 			
 			parasites.add(new Parasite());
 			
-			while (MathExtension.getDistance(parasites.get(i).getPosition(), player.getPosition()) < 2d)
+			while (MathExtension.getDistance(parasites.get(i).getPosition(), player.getPosition()) < 2f)
 				parasites.get(i).setPosition(getRandomFreePosition());
 			
 			double r = Math.random();
-			if (r < 0.10d) cores.add(new BlueCore());
-			else 	if (r < 0.20d) cores.add(new OrangeCore());
-					else	if (r < 0.30d) cores.add(new PurpleCore());
-							else if (r < 0.40d) cores.add(new RedCore());
+			if (r < 0.15d) cores.add(new BlueCore());
+			else 	if (r < 0.4d) cores.add(new OrangeCore());
+					else	if (r < 0.5d) cores.add(new RedCore());
+							else if (r < 75d)cores.add(new PurpleCore());
 				
 		}
 	}
@@ -105,8 +106,8 @@ public class Maze implements Disposable, IUpdateAndRender {
 				
 				if (blueprint[i][j]) {
 						
-						environment_layer.setCell(i, j, wall);
-						new Wall(i, j);
+					environment_layer.setCell(i, j, wall);
+					new Wall(i, j);
 						
 				} else {
 					
@@ -219,13 +220,11 @@ public class Maze implements Disposable, IUpdateAndRender {
 	}
 	
 	public static ConcurrentLinkedQueue<Vector2> findShortestPath(Vector2 from, Vector2 to) throws CannotFindPathException {
-		
 		return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), (int)((int)to.x * Constants.MAP_HEIGHT + to.y));
 		
 	}
 	
 	public static ConcurrentLinkedQueue<Vector2> getRandomPath(Vector2 from) throws CannotFindPathException {
-		
 		return graph.findShortestPath((int)((int)from.x * Constants.MAP_HEIGHT + from.y), graph.getRandomKey());
 		
 	}
@@ -244,31 +243,30 @@ public class Maze implements Disposable, IUpdateAndRender {
 		
 		if (portal == null) {
 		
-			if (particles.size() == 0) portal = new Portal();
+			if (particles.size() == 0) portal = Portal.getInstance();
 			else {
 			
-				for (int i = particles.size() - 1 ; i >= 0 ; --i)
-					if (particles.get(i).catched) {
+				for (int i = particles.size() - 1 ; i >= 0 ; --i) {
 					
-						particles.get(i).dispose();
-						particles.remove(i);
+					particles.get(i).update();
+					if (particles.get(i).catched) particles.remove(i);
 					
-					} else particles.get(i).update();
+				}
 			}
-		} else portal.update();
+		}
 	}
 
 	@Override
 	public void render() {
 		
-		renderer.setView(MainGame.camera);
+		renderer.setView(GameScreen.game_cam);
 		renderer.renderTileLayer((TiledMapTileLayer) map.getLayers().get("environment_layer"));
 
 		for (MapObject mo : map.getLayers().get("environment_layer").getObjects())
 			((LightBarrier)(mo)).renderBase();
 		
 		for (Core c : cores) c.render();
-		for (Particle p : particles) p.render();
+		for (Fragment p : particles) p.render();
 		player.updateAndRender();
 		for (Parasite p : parasites) p.updateAndRender();
 		
@@ -277,5 +275,14 @@ public class Maze implements Disposable, IUpdateAndRender {
 		for (MapObject mo : map.getLayers().get("environment_layer").getObjects())
 			((LightBarrier)(mo)).renderBarrier();
 		
+	}
+	
+	public static boolean parasiteNearPlayer () {
+		boolean res = false;
+		
+		int i = 0;
+		while (i < parasites.size() && !(res = parasites.get(i).isNearPlayer())) ++i;
+		
+		return res;
 	}
 }

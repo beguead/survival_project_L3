@@ -5,42 +5,34 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 
-import interfaces.IUpdateAndRender;
 import lights.Aura;
-import main.MainGame;
 import screens.GameScreen;
 import utilities.Assets;
 import utilities.BodyCreator;
 import utilities.Constants;
 
-public class Portal implements IUpdateAndRender {
+public class Portal {
 	
-	private Body body;
 	private Aura aura;
+	private Body body;
 	
-	private TextureRegion current_frame;
-	
-	public Portal() {
+	private Portal() {
 		
-		current_frame = Assets.portal_standing.getKeyFrame(GameScreen.state_time);
-		
-		body = BodyCreator.createCircleBody(BodyDef.BodyType.StaticBody, Maze.getRandomFreePosition(), current_frame.getRegionWidth() / (2 * Constants.PPM), true, Constants.SENSOR_FILTER, Constants.PLAYER_FILTER , this);
+		body = BodyCreator.createCircleBody(	BodyDef.BodyType.StaticBody, Maze.getRandomFreePosition(), Assets.portal.getKeyFrame(GameScreen.getStateTime()).getRegionWidth() / (2 * Constants.PPM),
+												true, Constants.ITEM_FILTER, Constants.PLAYER_FILTER , this);
 		body.setAwake(false);
 		
-		aura = new Aura(body, Color.CYAN, 0f);
+		aura = new Aura(body, Color.WHITE, 0f);
 		
 	}
+	
+	public static Portal getInstance() { return new Portal(); }
 	
 	public void render() {
 			
-			aura.setDistance(0.1f * (Assets.portal_standing.getKeyFrameIndex(GameScreen.state_time) + 1));	
-			MainGame.batch.draw(	current_frame,
-									body.getPosition().x * Constants.PPM - current_frame.getRegionWidth() / 2,
-									body.getPosition().y * Constants.PPM - current_frame.getRegionHeight() / 2 );
+		TextureRegion frame = Assets.portal.getKeyFrame(GameScreen.getStateTime());
+		aura.setDistance((Assets.portal.getKeyFrameIndex(GameScreen.getStateTime()) % 4 + 1) * 0.35f);	
+		GameScreen.game_batch.draw(	frame, body.getPosition().x * Constants.PPM - frame.getRegionWidth() / 2, body.getPosition().y * Constants.PPM - frame.getRegionHeight() / 2 );
 			
 	}
-
-	@Override
-	public void update() { current_frame = Assets.portal_standing.getKeyFrame(GameScreen.state_time); }
-
 }

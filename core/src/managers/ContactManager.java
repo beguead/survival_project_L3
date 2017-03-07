@@ -10,17 +10,20 @@ import characters.Parasite;
 import dungeon.LightBarrier;
 import dungeon.Maze;
 import dungeon.Portal;
-import items.BlueCore;
 import items.Core;
-import items.OrangeCore;
-import items.Particle;
-import items.CyanCore;
-import items.PurpleCore;
-import items.RedCore;
+import items.Fragment;
 import screens.GameScreen;
+import utilities.Constants;
+import utilities.Constants.PARASITE_STATES;
 import characters.Player;
 
 public class ContactManager implements ContactListener {
+	
+	private static ContactManager INSTANCE = new ContactManager();
+	
+	private ContactManager() {};
+	
+	public static ContactManager getInstance() { return INSTANCE; }
 
 	@Override
 	public void beginContact(Contact contact) {
@@ -43,57 +46,52 @@ public class ContactManager implements ContactListener {
 			
 			}
 			
-			if (sensor) p.isNearOfThePlayer(true); //The parasite is near of the player
-			else /*GameScreen.end = true*/; //The player has been catched by the parasite
+			if (!sensor) GameScreen.getInstance().setEnd(Constants.PLAYER_CATCHED); //The player has been catched by the parasite
+			else {
+				
+				p.setNearPlayer(true);
+				Maze.player.setHunted(true);
+				
+			}  //A parasite has feels the player
+			
 			
 		} else {
 			
 			if (isContactBetween(fa, fb, Player.class, Core.class)) {
 					
-					if (Maze.core_near_the_player == null) {
+				if (Maze.core_near_the_player == null) {
 						
-						Core c;
-						if (fa.getUserData() instanceof Core) {
-							
-							if (fa.getUserData() instanceof BlueCore) c = (BlueCore)(fa.getUserData());
-							else	if (fa.getUserData() instanceof OrangeCore) c = (OrangeCore)(fa.getUserData());
-									else	if (fa.getUserData() instanceof PurpleCore) c = (PurpleCore)(fa.getUserData());
-											else c = (CyanCore)(fa.getUserData());
-							
-						} else {
-							
-							if (fb.getUserData() instanceof BlueCore) c = (BlueCore)(fb.getUserData());
-							else	if (fb.getUserData() instanceof OrangeCore) c = (OrangeCore)(fb.getUserData());
-									else	if (fb.getUserData() instanceof PurpleCore) c = (PurpleCore)(fb.getUserData());
-											else	if (fb.getUserData() instanceof RedCore) c = (RedCore)(fb.getUserData());
-													else c = (CyanCore)(fb.getUserData());						
-							
-						}
+					Core c = fa.getUserData() instanceof Core ? (Core)fa.getUserData() : (Core)fb.getUserData();
 						
-						c.setAuraActive(true);
-						Maze.core_near_the_player = c;
+					c.setAuraActive(true);
+					Maze.core_near_the_player = c;
 						
-					}
+				}
 				
 			} else {
 				
 				if (isContactBetween(fa, fb, LightBarrier.class, Parasite.class)) {
-					
-					if (!(fa.isSensor() || fb.isSensor())) {
+
+					if (fa.getUserData() instanceof LightBarrier) {
+
+						if (!fa.isSensor() && fa.getBody().isActive())
+							((Parasite)(fb.getUserData())).setState(PARASITE_STATES.stunned);
 						
-						if (fa.getUserData() instanceof Parasite) ((Parasite)(fa.getUserData())).setStunned();
-						else ((Parasite)(fb.getUserData())).setStunned();
-					
+					} else {
+
+						if (!fb.isSensor() && fb.getBody().isActive())
+							((Parasite)(fa.getUserData())).setState(PARASITE_STATES.stunned);
+						
 					}
-					
 				} else {
 				
-					if (isContactBetween(fa, fb, Player.class, Particle.class)) {
+					if (isContactBetween(fa, fb, Player.class, Fragment.class)) {
 					
-						if (fa.getUserData() instanceof Particle) ((Particle)(fa.getUserData())).catched = true;
-						else ((Particle)(fb.getUserData())).catched = true;
+						if (fa.getUserData() instanceof Fragment) ((Fragment)(fa.getUserData())).catched = true;
+						else ((Fragment)(fb.getUserData())).catched = true;
 				
-					} else if (isContactBetween(fa, fb, Player.class, Portal.class)) GameScreen.end = true;
+					} else	if (isContactBetween(fa, fb, Player.class, Portal.class))
+								GameScreen.getInstance().setEnd(Constants.PLAYER_ESCAPED);
 				}
 			}
 		}
@@ -115,8 +113,10 @@ public class ContactManager implements ContactListener {
 			
 		} else if (isContactBetween(fa, fb, Player.class, Parasite.class)) {
 				
-				if (fa.getUserData() instanceof Parasite) ((Parasite)(fa.getUserData())).isNearOfThePlayer(false);
-				else ((Parasite)(fb.getUserData())).isNearOfThePlayer(false);
+				if (fa.getUserData() instanceof Parasite) ((Parasite)(fa.getUserData())).setNearPlayer(false);
+				else ((Parasite)(fb.getUserData())).setNearPlayer(false);
+				
+				Maze.player.setHunted((Maze.parasiteNearPlayer()));
 			
 		}
 	}

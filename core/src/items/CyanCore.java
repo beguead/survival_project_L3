@@ -6,8 +6,6 @@ import utilities.Constants;
 
 public class CyanCore extends Core {
 	
-	private static final CyanCore INSTANCE = new CyanCore();
-	
 	private CyanCore() { super(); }
 
 	@Override
@@ -19,6 +17,6 @@ public class CyanCore extends Core {
 	@Override
 	public Color getColor() { return Color.CYAN; }
 	
-    public static CyanCore getInstance() { return INSTANCE; }
+    public static CyanCore getInstance() { return new CyanCore(); }
 	
 }

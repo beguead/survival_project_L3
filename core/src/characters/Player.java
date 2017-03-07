@@ -1,10 +1,12 @@
 package characters;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 
 import box2dLight.ConeLight;
 import dungeon.Maze;
+import interfaces.MirrorCore;
 import items.BlueCore;
 import items.Core;
 import lights.Aura;
@@ -15,35 +17,41 @@ import utilities.Constants;
 
 public class Player extends Character {
 	
-	public boolean moving;
-
+	private boolean moving;
 	private Core core;
-	private ConeLight cone_light1;
+	private ConeLight cone_light;
+	private Animation current_animation;
 	
-	public Player() {
+	public static Player getInstance() { return new Player(); }
+	
+	private Player() {
 		super();
 		
-		current_frame = Assets.player.getKeyFrame(GameScreen.state_time);
+		current_animation = Assets.player_normal;
+		current_frame = current_animation.getKeyFrame(GameScreen.getStateTime());
 		
 		/*Movements*/
 		speed = 1f;
 		moving = false;
 		
-		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody, Maze.getRandomFreePosition(), current_frame.getRegionWidth() / (2 * Constants.PPM), false, Constants.PLAYER_FILTER,
-												(short)(Constants.WALL_FILTER | Constants.ITEM_FILTER | Constants.SENSOR_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER) , this	);
+		body = BodyCreator.createCircleBody(	BodyDef.BodyType.DynamicBody, Maze.getRandomFreePosition(), current_frame.getRegionWidth() / (2.5f * Constants.PPM), false, Constants.PLAYER_FILTER,
+												(short)(Constants.WALL_FILTER | Constants.ITEM_FILTER | Constants.LIGHT_FILTER | Constants.ENEMY_FILTER) , this	);
 		
 		/*Lights*/
-		aura = new Aura(body, Color.WHITE, 0.2f);
-		cone_light1 = new ConeLight(GameScreen.ray_handler, 100, Color.WHITE, 0f, body.getPosition().x, body.getPosition().y, 0f, 0f);
-		cone_light1.setSoftnessLength(0.1f);
+		aura = new Aura(body, Color.CYAN, 0.2f);
+		cone_light = new ConeLight(GameScreen.ray_handler, 100, Color.WHITE, 0f, body.getPosition().x, body.getPosition().y, 0f, 0f);
+		cone_light.setSoftnessLength(0.1f);
 		
+		setHunted(false);
+
 	}
+	
+	public void setHunted(boolean b) { current_animation = b ? Assets.player_hunted : Assets.player_normal; }
 	
 	public void dispose() {
 		
 		aura.dispose();
-		cone_light1.dispose();
-		GameScreen.world.destroyBody(body);
+		cone_light.dispose();
 		
 	}
 	
@@ -64,39 +72,42 @@ public class Player extends Character {
 		core.setBodyActive(false);
 		this.core = core;
 		
-		if (core instanceof BlueCore) {
+		if (core instanceof MirrorCore) {
 			
-			BlueCore bc = ((BlueCore)(core));
-			bc.setMirrorLightActive(true);
-			bc.majMirrorLightDirection((float)(direction * Constants.TO_DEGREE));
+			MirrorCore mc = (MirrorCore)core;
+			mc.setMirrorLightActive(true);
+			mc.majMirrorLightDirection((float)(direction * Constants.TO_DEGREE));
 			
 		}
 		
 		aura.setColor(core.getColor());
-		cone_light1.setColor(core.getColor());
-		cone_light1.setDistance(core.getDistance());
-		cone_light1.setConeDegree(core.getConeDegree());
+		cone_light.setColor(core.getColor());
+		cone_light.setDistance(core.getDistance());
+		cone_light.setConeDegree(core.getConeDegree());
 		
 	}
 
-	public void setDirection(double angle) {
+	public void setDirection(float angle) {
 		
 		direction = angle;
 		
 		float angle_in_degree = (float)(angle * Constants.TO_DEGREE);
-		cone_light1.setDirection(angle_in_degree);
-		if (core instanceof BlueCore) ((BlueCore)(core)).majMirrorLightDirection(angle_in_degree);
+		cone_light.setDirection(angle_in_degree);
+		if (core instanceof MirrorCore) ((MirrorCore)(core)).majMirrorLightDirection(angle_in_degree);
 		
 	}
 
 	public void update() {
 		
-		current_frame = Assets.player.getKeyFrame(GameScreen.state_time);
+		current_frame = current_animation.getKeyFrame(GameScreen.getStateTime());
 		
 		if (moving) move();
 		else body.setLinearVelocity(0f, 0f);
-		cone_light1.setPosition(getPosition());
+		cone_light.setPosition(getPosition());
 		core.setPosition(getPosition());
 		
 	}
+	
+	public void setMoving(boolean moving) { this.moving = moving; }
+	
 }

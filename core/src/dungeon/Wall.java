@@ -6,7 +6,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import utilities.BodyCreator;
 import utilities.Constants;
 
-public class Wall{
+public final class Wall {
 	
 	public Wall(float x, float y) {
 			
