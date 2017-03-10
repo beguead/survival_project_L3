@@ -128,8 +128,13 @@ public class Graph {
 		
 		path.add(inverted_path.get(inverted_path.size() - 1));
 		
-		for (int i = inverted_path.size() - 2 ; i > 1 ; --i)
-			path.add(inverted_path.get(i));
+		for (int i = inverted_path.size() - 2 ; i > 1 ; --i) {
+			
+			if (!(inverted_path.get(i - 1).x == inverted_path.get(i).x && inverted_path.get(i).x == inverted_path.get(i + 1).x ) &&
+				!(inverted_path.get(i - 1).y == inverted_path.get(i).y && inverted_path.get(i).y == inverted_path.get(i + 1).y))
+				path.add(inverted_path.get(i));
+			
+		}
 		
 		if (inverted_path.size() > 1) path.add(inverted_path.get(1));
 		

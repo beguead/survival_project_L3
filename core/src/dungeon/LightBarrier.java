@@ -49,7 +49,7 @@ public class LightBarrier extends MapObject implements Disposable {
 		barrier = BodyCreator.createBoxBody(	BodyDef.BodyType.StaticBody, new Vector2(x, y), width, height, false,
 												Constants.WALL_FILTER, (short)(Constants.PLAYER_FILTER | Constants.ENEMY_FILTER), this	);
 		
-		aura = new Aura(base, Color.ROYAL, 0f);
+		aura = new Aura(base, Color.BLUE, 0f);
 		aura.setActive(false);
 		barrier.setActive(false);
 		
@@ -69,7 +69,7 @@ public class LightBarrier extends MapObject implements Disposable {
 		
 		if (barrier.isActive()) {
 			
-			aura.setDistance((Assets.light_barrier.getKeyFrameIndex(GameScreen.getStateTime()) % 3 + 1) * 0.25f);
+			aura.setDistance((Assets.light_barrier.getKeyFrameIndex(GameScreen.getStateTime()) % 3 + 1) * 0.3f);
 			float width = Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()).getRegionWidth() / 2;
 			float height = Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()).getRegionHeight() / 2;
 			GameScreen.game_batch.draw(	Assets.light_barrier.getKeyFrame(GameScreen.getStateTime()),

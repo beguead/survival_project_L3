@@ -46,13 +46,13 @@ public class ContactManager implements ContactListener {
 			
 			}
 			
-			if (!sensor) GameScreen.getInstance().setEnd(Constants.PLAYER_CATCHED); //The player has been catched by the parasite
+			if (!sensor) GameScreen.getInstance().setEnd(Constants.PLAYER_CATCHED);
 			else {
 				
 				p.setNearPlayer(true);
 				Maze.player.setHunted(true);
 				
-			}  //A parasite has feels the player
+			}
 			
 			
 		} else {
@@ -71,18 +71,20 @@ public class ContactManager implements ContactListener {
 			} else {
 				
 				if (isContactBetween(fa, fb, LightBarrier.class, Parasite.class)) {
+					
+					Parasite p = null;
 
 					if (fa.getUserData() instanceof LightBarrier) {
 
 						if (!fa.isSensor() && fa.getBody().isActive())
-							((Parasite)(fb.getUserData())).setState(PARASITE_STATES.stunned);
+							p = (Parasite)fb.getUserData();
 						
-					} else {
-
-						if (!fb.isSensor() && fb.getBody().isActive())
-							((Parasite)(fa.getUserData())).setState(PARASITE_STATES.stunned);
-						
-					}
+					} else if (!fb.isSensor() && fb.getBody().isActive())
+							p = (Parasite)fa.getUserData();
+					
+					if (p != null && !p.isNearPlayer())
+						p.setState(PARASITE_STATES.stunned);
+					
 				} else {
 				
 					if (isContactBetween(fa, fb, Player.class, Fragment.class)) {

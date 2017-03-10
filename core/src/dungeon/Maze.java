@@ -69,7 +69,7 @@ public class Maze implements Disposable, IUpdateAndRender {
 
 		int i;
 		for (i = 0 ; i < Constants.NB_FRAGMENTS ; ++i) particles.add(new Fragment());
-		for (i = 0 ; i < Constants.MAP_WIDTH * Constants.MAP_HEIGHT / 25 ; ++i) {
+		for (i = 0 ; i < Constants.MAP_WIDTH / 2 ; ++i) {
 			
 			parasites.add(new Parasite());
 			

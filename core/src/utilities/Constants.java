@@ -21,17 +21,17 @@ public final class Constants {
     /*Map*/
     public static final int TILE_WIDTH = 128;
     public static final int TILE_HEIGHT = TILE_WIDTH;
-    public static final int MAP_WIDTH = 25;
+    public static final int MAP_WIDTH = 15;
     public static final int MAP_HEIGHT = MAP_WIDTH;
     
     public static final int NB_FRAGMENTS = 3;
     
     /*Lights*/
-    public static final float CYAN_CORE_CONE_DEGREE = 7f;
+    public static final float CYAN_CORE_CONE_DEGREE = 10f;
     public static final float CYAN_CORE_DISTANCE = 2.5f;
     
-    public static final float PURPLE_CORE_CONE_DEGREE = 4f;
-    public static final float PURPLE_CORE_DISTANCE = 30f;
+    public static final float PURPLE_CORE_CONE_DEGREE = 3f;
+    public static final float PURPLE_CORE_DISTANCE = 10f;
     
     public static final float ORANGE_CORE_CONE_DEGREE = 30f;
     public static final float ORANGE_CORE_DISTANCE = 2f;

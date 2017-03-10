@@ -137,7 +137,7 @@ public class Parasite extends Character {
 			case normal : {
 			
 					if (near_player) setState(PARASITE_STATES.hunting);
-					else {
+					else {	
 						updatePath();
 						move();
 					}
@@ -180,10 +180,14 @@ public class Parasite extends Character {
 		
 		} else {
 			
-			if (	MathExtension.getDistance(getPosition(), new Vector2(target.x + 0.5f, target.y + 0.5f)) < 0.3f
-					&& (target = path.poll()) != null ) updateDirection(target, true);
+			if (MathExtension.getDistance(getPosition(), new Vector2(target.x + 0.5f, target.y + 0.5f)) <= 0.35f)
+				target = path.poll();
+			
+			if (target != null)
+				updateDirection(target, true);
 			
 		}
+
 	}
 	
 	private void updateDirection(Vector2 to, boolean shift) {
